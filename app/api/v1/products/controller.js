@@ -1,3 +1,5 @@
+import { prisma } from "../../../database.js";
+
 export const create = (req, res) => {
   const { body = {} } = req;
   res.status(201);
