@@ -35,6 +35,13 @@ export const all = async (req, res, next) => {
         orderBy: {
           [orderBy]: direction,
         },
+        include: {
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
       }),
       prisma.product.count(),
     ]);

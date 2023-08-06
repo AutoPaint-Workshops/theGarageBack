@@ -11,7 +11,25 @@ datasource db {
 }
 
 model Product {
-  id          String @id @default(uuid()) @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
   title       String
   description String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String   @db.Uuid
 }
+
+model Category {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String
+  products Product[]
+}
+
+// model Brand {
+//   id   String @id @default(uuid()) @db.Uuid
+//   name String
+// }
+
+// model Store {
+//   id   String @id @default(uuid()) @db.Uuid
+//   name String
+// }
