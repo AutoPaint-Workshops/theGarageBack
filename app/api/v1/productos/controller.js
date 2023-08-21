@@ -6,8 +6,8 @@ export const create = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const result = await prisma.product.create({
-      data: body,
+    const result = await prisma.producto.create({
+      data: { ...body, fotos: { create: body.fotos } },
     });
 
     res.status(201);
@@ -29,21 +29,23 @@ export const all = async (req, res, next) => {
 
   try {
     const [result, total] = await Promise.all([
-      prisma.product.findMany({
+      prisma.producto.findMany({
         skip: offset,
         take: limit,
         orderBy: {
           [orderBy]: direction,
         },
         include: {
-          category: {
+          fotos: true,
+          valoraciones: true,
+          categoria: {
             select: {
-              name: true,
+              nombre_categoria: true,
             },
           },
         },
       }),
-      prisma.product.count(),
+      prisma.producto.count(),
     ]);
 
     res.json({
@@ -64,9 +66,19 @@ export const all = async (req, res, next) => {
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
-    const result = await prisma.product.findUnique({
+    const result = await prisma.producto.findUnique({
       where: {
         id: params.id,
+      },
+      include: {
+        categoria: {
+          select: {
+            id: true,
+            nombre_categoria: true,
+          },
+        },
+        fotos: true,
+        valoraciones: true,
       },
     });
 
@@ -89,12 +101,13 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
-    const result = await prisma.product.update({
+    const result = await prisma.producto.update({
       where: {
         id,
       },
       data: {
         ...body,
+        fecha_actualizacion: new Date().toISOString(),
       },
     });
 
@@ -111,7 +124,7 @@ export const remove = async (req, res) => {
   const { id } = params;
 
   try {
-    await prisma.product.delete({
+    await prisma.producto.delete({
       where: { id },
     });
 
