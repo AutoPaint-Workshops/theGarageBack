@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model Usuario {
   id                  String   @id @unique @default(uuid()) @db.Uuid
   correo              String   @db.VarChar(255)
@@ -182,4 +183,7 @@ model Pagos {
   cliente            Cliente          @relation(fields: [id_cliente], references: [id])
   orden_productos    Orden_Productos? @relation(fields: [id_orden_productos], references: [id])
   orden_servicios    Orden_Servicios? @relation(fields: [id_orden_servicios], references: [id])
+
 }
+
+

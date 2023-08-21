@@ -1,32 +1,123 @@
 import { prisma } from "../../../database.js";
+import { fields } from "./model.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
-export const create = (req, res) => {
+export const create = async (req, res, next) => {
   const { body = {} } = req;
-  res.status(201);
-  res.json({
-    data: body,
-  });
+
+  try {
+    const result = await prisma.product.create({
+      data: body,
+    });
+
+    res.status(201);
+    res.json({
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-export const all = (req, res) => {
+
+export const all = async (req, res, next) => {
   const { query } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.product.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      prisma.product.count(),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const id = async (req, res, next) => {
+  const { params = {} } = req;
+  try {
+    const result = await prisma.product.findUnique({
+      where: {
+        id: params.id,
+      },
+    });
+
+    req.result = result;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const read = async (req, res, next) => {
   res.json({
-    data: [],
+    data: req.result,
   });
 };
 
-export const read = (req, res) => {
-  res.json({
-    data: {},
-  });
+export const update = async (req, res, next) => {
+  const { body = {}, params = {} } = req;
+  const { id } = params;
+
+  try {
+    const result = await prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        ...body,
+      },
+    });
+
+    res.json({
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const update = (req, res) => {
-  res.json({
-    data: {},
-  });
-};
+export const remove = async (req, res) => {
+  const { params = {} } = req;
+  const { id } = params;
 
-export const remove = (req, res) => {
-  res.status(204);
-  res.end();
+  try {
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.status(204);
+    res.end();
+  } catch (error) {
+    next(error);
+  }
 };
