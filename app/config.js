@@ -13,6 +13,6 @@ export const configuration = {
   order: {
     options: ["asc", "desc"],
     direction: "desc",
-    orderBy: "title",
+    orderBy: "id",
   },
 };
