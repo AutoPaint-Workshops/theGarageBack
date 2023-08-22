@@ -9,6 +9,7 @@ import { router as auth } from "./auth/routes.js";
 import { router as perfil } from "./perfil/routes.js";
 
 import { router as ordenProductos } from "./Orden_Productos/routes.js";
+import { router as detalleOrdenProductos } from "./Detalle_Orden_Productos/routes.js";
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -21,4 +22,6 @@ router.use("/categorias", categorys);
 router.use("/auth", auth);
 router.use("/miperfil", perfil);
 router.use("/orden_productos", ordenProductos);
+router.use("/detalle_orden_productos", detalleOrdenProductos);
+
 // router.use("/users", users);

@@ -6,7 +6,7 @@ export const create = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const result = await prisma.orden_Productos.create({
+    const result = await prisma.detalle_Orden_Productos.create({
       data: body,
     });
 
@@ -29,30 +29,14 @@ export const all = async (req, res, next) => {
 
   try {
     const [result, total] = await Promise.all([
-      prisma.orden_Productos.findMany({
+      prisma.detalle_Orden_Productos.findMany({
         skip: offset,
         take: limit,
         orderBy: {
           [orderBy]: direction,
         },
-        include: {
-          cliente: {
-            select: {
-              nombre_completo: true,
-            },
-          },
-        },
-        include: {
-          detalle_orden_productos: {
-            select: {
-              id_producto: true,
-              cantidad: true,
-              precio_unitario: true,
-            },
-          },
-        },
       }),
-      prisma.orden_Productos.count(),
+      prisma.detalle_Orden_Productos.count(),
     ]);
 
     res.json({
@@ -73,9 +57,26 @@ export const all = async (req, res, next) => {
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
-    const result = await prisma.orden_Productos.findUnique({
+    const result = await prisma.detalle_Orden_Productos.findUnique({
       where: {
         id: params.id,
+      },
+    });
+
+    req.result = result;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const idOrden = async (req, res, next) => {
+  const { params = {} } = req;
+  try {
+    const result = await prisma.detalle_Orden_Productos.findMany({
+      where: {
+        id_orden_productos: params.id_orden,
       },
     });
 
@@ -98,7 +99,7 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
-    const result = await prisma.orden_Productos.update({
+    const result = await prisma.detalle_Orden_Productos.update({
       where: {
         id,
       },
@@ -120,7 +121,7 @@ export const remove = async (req, res) => {
   const { id } = params;
 
   try {
-    await prisma.orden_Productos.delete({
+    await prisma.detalle_Orden_Productos.delete({
       where: { id },
     });
 
