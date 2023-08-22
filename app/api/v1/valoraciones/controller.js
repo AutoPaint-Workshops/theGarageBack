@@ -45,7 +45,7 @@ export const all = async (req, res, next) => {
           },
         },
         where: {
-          id_producto: productId,
+          OR: [{ id_producto: productId }, { id_servicio: productId }],
         },
       }),
       prisma.valoracion.count(),

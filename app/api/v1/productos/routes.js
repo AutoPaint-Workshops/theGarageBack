@@ -11,6 +11,7 @@ export const router = Router();
  * /api/v1/products POST        - CREATE
  * /api/v1/products GET         - READ ALL
  * /api/v1/products/:id GET     - READ ONE
+ * /api/v1/products/:search GET - READ SEARCH
  * /api/v1/products/:id PUT     - UPDATE
  * /api/v1/products/:id DELETE  - DELETE
  */
