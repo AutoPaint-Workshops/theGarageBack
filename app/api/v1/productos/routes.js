@@ -17,6 +17,7 @@ export const router = Router();
  */
 
 router.route("/").post(controller.create).get(controller.all);
+router.route("/:searchTerm").get(controller.search);
 
 router.param("id", controller.id);
 

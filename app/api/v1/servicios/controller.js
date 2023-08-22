@@ -19,6 +19,70 @@ export const create = async (req, res, next) => {
   }
 };
 
+export const search = async (req, res, next) => {
+  const { query, params } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  const { searchTerm } = params;
+
+  const keywords = searchTerm.split("-");
+  try {
+    const [result, total] = await Promise.all([
+      prisma.servicio.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          fotos: true,
+          valoraciones: true,
+          categoria: {
+            select: {
+              nombre_categoria: true,
+            },
+          },
+        },
+        where: {
+          OR: keywords.map((keyword) => ({
+            nombre: {
+              contains: keyword, // Buscar coincidencias en el nombre
+              mode: "insensitive", // Hacer la búsqueda insensible a mayúsculas/minúsculas
+            },
+          })),
+        },
+      }),
+      prisma.servicio.count({
+        where: {
+          OR: keywords.map((keyword) => ({
+            nombre: {
+              contains: keyword, // Buscar coincidencias en el nombre
+              mode: "insensitive", // Hacer la búsqueda insensible a mayúsculas/minúsculas
+            },
+          })),
+        },
+      }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const all = async (req, res, next) => {
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
