@@ -1,13 +1,21 @@
 import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
+import { fields, FotoSchema } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
+    const { success, data, error } = await FotoSchema.safeParseAsync(body);
+    if (!success) {
+      return next({
+        message: "Validation error",
+        status: 400,
+        error,
+      });
+    }
     const result = await prisma.foto.create({
-      data: body,
+      data: { ...data },
     });
     res.status(201);
     res.json({
@@ -102,12 +110,23 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
+    const { success, data, error } = await FotoSchema.partial().safeParseAsync(
+      body
+    );
+    if (!success) {
+      return next({
+        message: "Validator error",
+        status: 400,
+        error,
+      });
+    }
+
     const result = await prisma.foto.update({
       where: {
         id,
       },
       data: {
-        ...body,
+        ...data,
         // updatedAt: new Date().toISOString(),
       },
     });
