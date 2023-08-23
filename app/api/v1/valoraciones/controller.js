@@ -1,13 +1,24 @@
 import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
+import { ValoracionSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
+    const { success, data, error } = await ValoracionSchema.safeParseAsync(
+      body
+    );
+    if (!success) {
+      return next({
+        message: "Validation error",
+        status: 400,
+        error,
+      });
+    }
+
     const result = await prisma.valoracion.create({
-      data: body,
+      data: data,
     });
 
     res.status(201);
@@ -27,8 +38,18 @@ export const all = async (req, res, next) => {
     ...query,
   });
   const { productId } = params;
+  console.log(productId);
 
   try {
+    let whereCondition = {
+      OR: [{ id_producto: productId }, { id_servicio: productId }],
+    };
+
+    // Si productId es indefinido, no aplicamos la condición al where
+    if (productId === undefined) {
+      whereCondition = {};
+    }
+
     const [result, total] = await Promise.all([
       prisma.valoracion.findMany({
         skip: offset,
@@ -44,9 +65,7 @@ export const all = async (req, res, next) => {
             },
           },
         },
-        where: {
-          OR: [{ id_producto: productId }, { id_servicio: productId }],
-        },
+        where: whereCondition,
       }),
       prisma.valoracion.count(),
     ]);
@@ -100,12 +119,21 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
+    const { success, data, error } =
+      await ValoracionSchema.partial().safeParseAsync(body);
+    if (!success) {
+      return next({
+        message: "Validator error",
+        status: 400,
+        error,
+      });
+    }
     const result = await prisma.valoracion.update({
       where: {
         id,
       },
       data: {
-        ...body,
+        ...data,
         // updatedAt: new Date().toISOString(),
       },
     });
