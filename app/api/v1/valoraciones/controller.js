@@ -1,24 +1,13 @@
 import { prisma } from "../../../database.js";
-import { ValoracionSchema, fields } from "./model.js";
+import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const { success, data, error } = await ValoracionSchema.safeParseAsync(
-      body
-    );
-    if (!success) {
-      return next({
-        message: "Validation error",
-        status: 400,
-        error,
-      });
-    }
-
     const result = await prisma.valoracion.create({
-      data: data,
+      data: body,
     });
 
     res.status(201);
@@ -119,21 +108,12 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
-    const { success, data, error } =
-      await ValoracionSchema.partial().safeParseAsync(body);
-    if (!success) {
-      return next({
-        message: "Validator error",
-        status: 400,
-        error,
-      });
-    }
     const result = await prisma.valoracion.update({
       where: {
         id,
       },
       data: {
-        ...data,
+        ...body,
         // updatedAt: new Date().toISOString(),
       },
     });

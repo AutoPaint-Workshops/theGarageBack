@@ -10,14 +10,14 @@ export const router = Router();
 /**
  * /api/v1/services POST        - CREATE
  * /api/v1/services GET         - READ ALL
- * /api/v1/services/:search GET - READ SEARCH
+ * /api/v1/services/search/:searchTerm GET - READ SEARCH
  * /api/v1/services/:id GET     - READ ONE
  * /api/v1/services/:id PUT     - UPDATE
  * /api/v1/services/:id DELETE  - DELETE
  */
 
 router.route("/").post(controller.create).get(controller.all);
-router.route("/:searchTerm").get(controller.search);
+router.route("/search/:searchTerm").get(controller.search);
 
 router.param("id", controller.id);
 
