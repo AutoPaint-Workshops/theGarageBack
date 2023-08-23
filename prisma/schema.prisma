@@ -8,17 +8,17 @@ datasource db {
 }
 
 model Usuario {
-  id                  String   @id @unique @default(uuid()) @db.Uuid
-  correo              String   @unique @db.VarChar(255)
-  contrasena          String   @db.VarChar(255)
-  tipo_usuario        String   @db.VarChar(50)
-  fecha_creacion      DateTime @default(now())
+  id                  String    @id @unique @default(uuid()) @db.Uuid
+  correo              String    @unique @db.VarChar(255)
+  contrasena          String    @db.VarChar(255)
+  tipo_usuario        String    @db.VarChar(50)
+  fecha_creacion      DateTime  @default(now())
   fecha_actualizacion DateTime?
-  estatus             String   @db.VarChar(20)
-  url_foto            String?  @db.Text
-  pais                String?  @db.VarChar(100)
-  ciudad              String?  @db.VarChar(100)
-  direccion           String?  @db.Text
+  estatus             String    @db.VarChar(20)
+  url_foto            String?   @db.Text
+  pais                String?   @db.VarChar(100)
+  ciudad              String?   @db.VarChar(100)
+  direccion           String?   @db.Text
   cliente             Cliente?
   empresa             Empresa?
 }
@@ -131,7 +131,7 @@ model Valoracion {
 model Orden_Productos {
   id                      String                    @id @default(uuid()) @db.Uuid
   id_cliente              String                    @db.Uuid
-  fecha_orden             DateTime                  @db.Timestamp
+  fecha_orden             DateTime                  @default(now()) @db.Timestamp
   subtotal                Decimal                   @db.Decimal(10, 2)
   total                   Decimal                   @db.Decimal(10, 2)
   estado                  String                    @db.VarChar(20)
@@ -153,7 +153,8 @@ model Detalle_Orden_Productos {
 model Orden_Servicios {
   id                     String                   @id @default(uuid()) @db.Uuid
   id_cliente             String                   @db.Uuid
-  fecha_orden            DateTime                 @db.Timestamp
+  fecha_orden            DateTime                 @default(now()) @db.Timestamp
+  subtotal               Decimal                  @db.Decimal(10, 2)
   total                  Decimal                  @db.Decimal(10, 2)
   estado                 String                   @db.VarChar(20)
   cliente                Cliente                  @relation(fields: [id_cliente], references: [id])
@@ -172,8 +173,8 @@ model Detalle_Orden_Servicio {
 model Pagos {
   id                 String           @id @default(uuid()) @db.Uuid
   id_cliente         String           @db.Uuid
-  id_orden_productos String           @db.Uuid
-  id_orden_servicios String           @db.Uuid
+  id_orden_productos String?          @db.Uuid
+  id_orden_servicios String?          @db.Uuid
   metodo_pago        String?          @db.VarChar(100)
   datos_facturacion  String?          @db.Text
   cliente            Cliente          @relation(fields: [id_cliente], references: [id])
