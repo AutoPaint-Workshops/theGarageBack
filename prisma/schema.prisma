@@ -8,17 +8,17 @@ datasource db {
 }
 
 model Usuario {
-  id                  String   @id @unique @default(uuid()) @db.Uuid
-  correo              String   @unique @db.VarChar(255)
-  contrasena          String   @db.VarChar(255)
-  tipo_usuario        String   @db.VarChar(50)
-  fecha_creacion      DateTime @default(now())
+  id                  String    @id @unique @default(uuid()) @db.Uuid
+  correo              String    @unique @db.VarChar(255)
+  contrasena          String    @db.VarChar(255)
+  tipo_usuario        String    @db.VarChar(50)
+  fecha_creacion      DateTime  @default(now())
   fecha_actualizacion DateTime?
-  estatus             String   @db.VarChar(20)
-  url_foto            String?  @db.Text
-  pais                String?  @db.VarChar(100)
-  ciudad              String?  @db.VarChar(100)
-  direccion           String?  @db.Text
+  estatus             String    @db.VarChar(20)
+  url_foto            String?   @db.Text
+  pais                String?   @db.VarChar(100)
+  ciudad              String?   @db.VarChar(100)
+  direccion           String?   @db.Text
   cliente             Cliente?
   empresa             Empresa?
 }
