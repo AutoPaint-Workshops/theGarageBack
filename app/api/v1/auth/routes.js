@@ -14,9 +14,11 @@ export const router = Router();
  */
 
 router.route('/signin').post(controller.signin);
-router.route('/signup/client').post(controller.signupClient);
-router.route('/signup/company').post(controller.signupCompany);
+
 router
   .route('/recuperarcontrasena')
   .post(controller.passwordRecovery)
   .patch(controller.updatePassword);
+
+router.param('tipo', controller.tipo);
+router.route('/:tipo/signup').post(controller.signup);

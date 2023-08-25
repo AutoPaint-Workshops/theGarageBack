@@ -29,8 +29,8 @@ export const read = async (req, res, next) => {
 };
 
 export const update = async (req, res, next) => {
-  const { body = {}, params = {} } = req;
-  const { id } = params;
+  const { body = {}, decoded = {} } = req;
+  const { id } = decoded;
 
   try {
     const { tipo, data } = body;
