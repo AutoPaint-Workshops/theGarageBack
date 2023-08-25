@@ -1,4 +1,5 @@
 import { prisma } from '../../../database.js';
+import { signToken } from '../auth.js';
 import { encryptPassword, verifyPassword } from './model.js';
 // import { fields } from './model.js';
 // import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
@@ -75,6 +76,10 @@ export const signin = async (req, res, next) => {
       where: {
         correo,
       },
+      include: {
+        cliente: true,
+        empresa: true,
+      },
     });
 
     if (user === null) {
@@ -92,12 +97,19 @@ export const signin = async (req, res, next) => {
         status: 401,
       });
     }
+    const idType = !!user.cliente ? user.cliente.id : user.empresa.id;
+    const { id, tipo_usuario: userType } = user;
+
+    const token = signToken({ id, userType, idType });
 
     res.json({
       data: {
         ...user,
         id: undefined,
         contrasena: undefined,
+      },
+      meta: {
+        token,
       },
     });
   } catch (error) {
