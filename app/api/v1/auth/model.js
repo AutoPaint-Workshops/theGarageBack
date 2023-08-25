@@ -1,3 +1,5 @@
+import { hash, compare } from 'bcrypt';
+
 export const fields = [
   'id',
   'correo',
@@ -10,3 +12,11 @@ export const fields = [
   'ciudad',
   'direccion',
 ];
+
+export const encryptPassword = (password) => {
+  return hash(password, 10);
+};
+
+export const verifyPassword = (password, encryptPassword) => {
+  return compare(password, encryptPassword);
+};
