@@ -3,11 +3,21 @@ import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
-  const { body = {} } = req;
+  const { body = {}, decoded = {} } = req;
+
+  // eslint-disable-next-line camelcase
+  const { userType, idType: id_empresa } = decoded;
+
+  if (userType !== "Empresa") {
+    return res.status(401).json({
+      error: "No autorizado",
+    });
+  }
 
   try {
     const result = await prisma.servicio.create({
-      data: { ...body, fotos: { create: body.fotos } },
+      // eslint-disable-next-line camelcase
+      data: { ...body, fotos: { create: body.fotos }, id_empresa },
     });
 
     res.status(201);
@@ -146,9 +156,14 @@ export const id = async (req, res, next) => {
       },
     });
 
-    req.result = result;
-
-    next();
+    if (result === null) {
+      return res.status(404).json({
+        error: "Servicio No encontrado",
+      });
+    } else {
+      req.data = result;
+      next();
+    }
   } catch (error) {
     next(error);
   }

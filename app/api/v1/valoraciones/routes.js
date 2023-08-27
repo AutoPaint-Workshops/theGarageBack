@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import * as controller from "./controller.js";
+import { auth, owner } from "../auth.js";
 
 // eslint-disable-next-line new-cap
 export const router = Router({ mergeParams: true });
@@ -13,13 +14,13 @@ export const router = Router({ mergeParams: true });
  * /api/v1/ratings/:id DELETE  - DELETE
  */
 
-router.route("/").post(controller.create).get(controller.all);
+router.route("/").post(auth, controller.create).get(controller.all);
 
 router.param("id", controller.id);
 
 router
   .route("/:id")
-  .get(controller.read)
-  .put(controller.update)
-  .patch(controller.update)
-  .delete(controller.remove);
+  .get(auth, controller.read)
+  .put(auth, controller.update)
+  .patch(auth, controller.update)
+  .delete(auth, controller.remove);

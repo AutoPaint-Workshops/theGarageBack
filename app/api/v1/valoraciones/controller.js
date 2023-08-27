@@ -3,11 +3,20 @@ import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
-  const { body = {} } = req;
+  const { body = {}, decoded = {} } = req;
+  // eslint-disable-next-line camelcase
+  const { userType, idType: id_cliente } = decoded;
+
+  if (userType !== "Cliente") {
+    return res.status(401).json({
+      error: "No autorizado",
+    });
+  }
 
   try {
     const result = await prisma.valoracion.create({
-      data: body,
+      // eslint-disable-next-line camelcase
+      data: { ...body, id_cliente },
     });
 
     res.status(201);
