@@ -1,0 +1,308 @@
+{
+  "paths":{
+    "/productos":{
+      "get":{
+        "tags":[
+          "Productos"
+        ],
+        "description":"Obtener todos los productos",
+        "responses":{
+          "200":{
+            "content":{
+              "application/json":{
+                "schema":{
+                  "type":"object",
+                  "properties":{
+                    "data":{
+                      "type":"array",
+                      "items":{
+                        "$ref":"#/components/schemas/Producto"
+                        
+                      }
+                    }
+                  }
+                 
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post":{
+          "tags":[
+            "Productos"
+          ],
+          "description":"Crear un producto",
+          "requestBody":{
+            "content":{
+              "application/json":{
+                "schema":{
+                  "$ref":"#/components/schemas/ProductoCreate"
+                  
+                  
+                }
+              }
+            }
+          },
+          "responses":{
+            "201":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "$ref":"#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "$ref":"#/components/schemas/UnauthorizedError"
+                      }
+                    }
+                  }
+                }
+              }
+              
+            }
+          }
+
+
+        }
+
+      
+      },
+      "/productos/{id}":{
+        "get":{
+          "description":"Obtener un producto por id",
+          "tags":[
+            "Productos"
+          ],
+
+          "parameters":[
+            {
+              "in":"path",
+              "name":"ProductId",
+              "required":true,
+              "schema":{
+                "type":"string"
+              },
+              "description":"Id del producto"
+            }
+          ],
+          "responses":{
+            "200":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "$ref":"#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+        
+        },
+        
+        "put":{
+          "tags":[
+            "Productos"
+          ],
+          "description":"Actualizar un producto",
+          "requestBody":{
+            "content":{
+              "application/json":{
+                "schema":{
+                  "$ref":"#/components/schemas/ProductoCreate"
+                  
+                  
+                }
+              }
+            }
+          },
+          "responses":{
+            "200":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "$ref":"#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+        }
+      },
+      "/productos/search/{searhTerm}":{
+        "get":{
+          "description":"Obtener un producto por Parametro de busqueda",
+          "tags":[
+            "Productos"
+          ],
+
+          "parameters":[
+            {
+              "in":"path",
+              "name":"SearchTerm",
+              "required":true,
+              "schema":{
+                "type":"string"
+              },
+              "description":"Nombre de un producto"
+            }
+          ],
+          "responses":{
+            "200":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "$ref":"#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+        
+        }
+      }
+
+    },
+    "components":{
+      "schemas":{
+        "Producto":{
+          "type":"object",
+          "properties":{
+            "id":{
+              "type":"string",
+              "example":"321d99a0-3a3f-44ad-b807-6f8413e03ac0"
+            },
+            "nombre":{
+              "type":"string",
+              "example":"Frenos de disco"
+            },
+            "descripcion":{
+              "type":"string",
+              "example":"Frenos de disco para auto"
+            },
+            "ficha_tecnica":{
+              "type":"string",
+              "example":"Frenos de disco para auto"
+            },
+            "precio":{
+              "type":"number",
+              "example":50000
+            },
+            "cantidad_disponible":{
+              "type":"number",
+              "example":10
+            },
+            "estatus":{
+              "type":"boolean",
+              "example":true
+            },
+            "tipo_entrega":{
+              "type":"string",
+              "example":"Entrega a domicilio"
+            },
+            "marca":{
+              "type":"string",
+              "example":"Brembo"
+            },
+            "fecha_creacion":{
+              "type":"string",
+              "format":"date-time",
+              "example":"2021-06-01T00:00:00.000Z"
+            },
+            "fecha_actualizacion":{
+              "type":"string",
+              "format":"date-time",
+              "example":"2021-06-01T00:00:00.000Z"
+            }
+          }
+        },
+        "ProductoCreate":{
+          "type":"object",
+                  "properties":{
+                    "nombre":{
+                      "type":"string",
+                      "example":"Frenos de disco"
+                    },
+                    "descripcion":{
+                      "type":"string",
+                      "example":"Frenos de disco para auto"
+                    },
+                    "ficha_tecnica":{
+                      "type":"string",
+                      "example":"Frenos de disco para auto"
+                    },
+                    "precio":{
+                      "type":"number",
+                      "example":50000
+                    },
+                    "cantidad_disponible":{
+                      "type":"number",
+                      "example":10
+                    },
+                    "estatus":{
+                      "type":"boolean",
+                      "example":true
+                    },
+                    "tipo_entrega":{
+                      "type":"string",
+                      "example":"Entrega a domicilio"
+                    },
+                    "marca":{
+                      "type":"string",
+                      "example":"Brembo"
+                    }
+                  
+                  }
+        },
+        "UnauthorizedError":{
+          "type":"object",
+          "properties":{
+            "message":{
+              "type":"string",
+              "example":"No autorizado"
+            },
+            "status":{
+              "type":"number",
+              "example":401
+            }
+          }
+        }
+
+
+        }
+      }
+    }
+
+  
+
