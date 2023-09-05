@@ -18,5 +18,4 @@ router
   .route('/')
   .get(auth, controller.read)
   .put(auth, controller.update)
-  .patch(auth, controller.update)
-  .delete(auth, controller.remove);
+  .patch(auth, controller.update);

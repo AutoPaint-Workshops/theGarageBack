@@ -1,6 +1,11 @@
 import { prisma } from '../../../database.js';
 import { signToken } from '../auth.js';
-import { validateCreate, validateSignIn } from './model.js';
+import {
+  validateCreate,
+  validatePasswordRecovery,
+  validatePasswordUpdate,
+  validateSignIn,
+} from './model.js';
 import {
   ifType,
   isActive,
@@ -152,7 +157,6 @@ export const signin = async (req, res, next) => {
 
     const { id, tipo_usuario: userType } = user;
     const { id: idType } = typeData;
-    // //agregado por w
 
     const token = signToken({ id, userType, idType });
 
@@ -184,7 +188,15 @@ export const passwordRecovery = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const { correo } = body;
+    const { success, data, error } = await validatePasswordRecovery(body);
+    if (!success)
+      return next({
+        message: 'Error de validación',
+        status: 400,
+        error,
+      });
+
+    const { correo } = data;
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
@@ -217,8 +229,17 @@ export const passwordRecovery = async (req, res, next) => {
 export const updatePassword = async (req, res, next) => {
   const { body = {} } = req;
   try {
-    const { correo, contrasena, codigo } = body;
+    const { success, data, error } = await validatePasswordUpdate(body);
+    if (!success)
+      return next({
+        message: 'Error de validación',
+        status: 400,
+        error,
+      });
 
+    const { correo, contrasena, codigo } = data;
+
+    // // Espacio para la verificacion del código
     if (!codigo) {
       return next({
         message: 'Código invalido',
