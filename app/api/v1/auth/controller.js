@@ -1,6 +1,11 @@
 import { prisma } from '../../../database.js';
 import { signToken } from '../auth.js';
-import { validateCreate, validateSignIn } from './model.js';
+import {
+  validateCreate,
+  validatePasswordRecovery,
+  validatePasswordUpdate,
+  validateSignIn,
+} from './model.js';
 import {
   ifType,
   isActive,
