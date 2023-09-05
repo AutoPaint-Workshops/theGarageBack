@@ -17,6 +17,7 @@ export const create = async (req, res, next) => {
     const result = await prisma.producto.create({
       // eslint-disable-next-line camelcase
       data: { ...body, fotos: { create: body.fotos }, id_empresa },
+      // * fotos: { create: body.fotos } => Crea las fotos del producto y crea la relación con el producto
     });
 
     res.status(201);

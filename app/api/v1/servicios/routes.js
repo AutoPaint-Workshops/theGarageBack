@@ -29,5 +29,5 @@ router
   .patch(auth, owner, controller.update)
   .delete(auth, owner, controller.remove);
 
-router.use("/:productId/valoraciones", ratingsProducts);
+router.use("/:serviceId/valoraciones", ratingsProducts);
 router.use("/:productId/fotos", photosProducts);

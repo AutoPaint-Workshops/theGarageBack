@@ -21,6 +21,6 @@ router.param("id", controller.id);
 router
   .route("/:id")
   .get(auth, controller.read)
-  .put(auth, controller.update)
-  .patch(auth, controller.update)
-  .delete(auth, controller.remove);
+  .put(auth, controller.update) // ? Usuario puede actualizar su valoracion ?
+  .patch(auth, controller.update) // ? Usario puede actualizar su valoracion ?
+  .delete(auth, controller.remove); // ? Usario puede eliminar su valoracion ?

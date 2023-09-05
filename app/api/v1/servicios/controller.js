@@ -171,7 +171,7 @@ export const id = async (req, res, next) => {
 
 export const read = async (req, res, next) => {
   res.json({
-    data: req.result,
+    data: req.data,
   });
 };
 
