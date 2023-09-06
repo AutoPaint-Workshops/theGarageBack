@@ -1,9 +1,12 @@
 import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
+import { ProductosSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
+import fs from "fs";
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded = {} } = req;
+  const files = req.files;
   // eslint-disable-next-line camelcase
   const { userType, idType: id_empresa } = decoded;
 
@@ -14,16 +17,50 @@ export const create = async (req, res, next) => {
   }
 
   try {
-    const result = await prisma.producto.create({
-      // eslint-disable-next-line camelcase
-      data: { ...body, fotos: { create: body.fotos }, id_empresa },
-      // * fotos: { create: body.fotos } => Crea las fotos del producto y crea la relación con el producto
+    // * Subo las fotos a cloudinary
+    const promises = files.map((file) => uploadFiles(file.path));
+    const resultados = await Promise.all(promises);
+
+    // * Creo estructura de fotos para la base de datos
+    const fotosCloudinary = [];
+    for (let i = 0; i < files.length; i++) {
+      fotosCloudinary.push({ url_foto: resultados[i].url });
+    }
+
+    // * Elimino las fotos del servidor temporales, ya no las necesito.
+    files.forEach((file) => fs.unlinkSync(file.path));
+
+    const { success, data, error } = await ProductosSchema.safeParseAsync({
+      ...body,
+      precio: parseInt(body.precio),
+      cantidad_disponible: parseInt(body.cantidad_disponible),
+      estatus: Boolean(body.estatus),
+      impuestos: parseFloat(body.impuestos),
     });
 
+    if (!success) {
+      return next({
+        message: "Validation error",
+        status: 400,
+        error,
+      });
+    }
+
+    const result = await prisma.producto.create({
+      data: {
+        ...data,
+        fotos: { create: fotosCloudinary },
+        // eslint-disable-next-line camelcase
+        id_empresa,
+      },
+      //   * fotos: { create: body.fotosCloudinary } => Crea las fotos del producto y crea la relación con el producto
+    });
     res.status(201);
     res.json({
       data: result,
     });
+
+    // res.json({ body, files });
   } catch (error) {
     next(error);
   }
