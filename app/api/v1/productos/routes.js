@@ -22,6 +22,9 @@ router
   .route("/")
   .post(auth, uploads.array("images"), controller.create)
   .get(controller.all);
+
+router.route("/misproductos").get(auth, controller.myProducts);
+
 router.route("/search/:searchTerm").get(controller.search);
 
 router.param("id", controller.id);

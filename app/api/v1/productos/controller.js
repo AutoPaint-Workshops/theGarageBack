@@ -174,6 +174,69 @@ export const all = async (req, res, next) => {
   }
 };
 
+export const myProducts = async (req, res, next) => {
+  const { decoded = {} } = req;
+
+  // eslint-disable-next-line camelcase
+  const { userType, idType: id_empresa } = decoded;
+
+  if (userType !== "Empresa") {
+    return res.status(401).json({
+      error: "No autorizado",
+    });
+  }
+  const { query } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.producto.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          fotos: true,
+          valoraciones: true,
+          categoria: {
+            select: {
+              nombre_categoria: true,
+            },
+          },
+        },
+        where: {
+          // eslint-disable-next-line camelcase
+          id_empresa,
+        },
+      }),
+      prisma.producto.count({
+        where: {
+          // eslint-disable-next-line camelcase
+          id_empresa,
+        },
+      }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
