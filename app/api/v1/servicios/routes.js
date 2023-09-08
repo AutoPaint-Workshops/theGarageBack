@@ -4,6 +4,7 @@ import * as controller from "./controller.js";
 import { router as ratingsProducts } from "../valoraciones/routes.js";
 import { router as photosProducts } from "../fotos/routes.js";
 import { auth, owner } from "../auth.js";
+import { uploads } from "../../../uploadsPhotos/uploads.js";
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -17,7 +18,10 @@ export const router = Router();
  * /api/v1/services/:id DELETE  - DELETE
  */
 
-router.route("/").post(auth, controller.create).get(controller.all);
+router
+  .route("/")
+  .post(auth, uploads.array("images"), controller.create)
+  .get(controller.all);
 router.route("/search/:searchTerm").get(controller.search);
 
 router.param("id", controller.id);
@@ -29,5 +33,5 @@ router
   .patch(auth, owner, controller.update)
   .delete(auth, owner, controller.remove);
 
-router.use("/:productId/valoraciones", ratingsProducts);
+router.use("/:serviceId/valoraciones", ratingsProducts);
 router.use("/:productId/fotos", photosProducts);

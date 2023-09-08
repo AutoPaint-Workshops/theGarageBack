@@ -1,11 +1,19 @@
 import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
+import { ValoracionSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
+// =========================================
+// * Crear una Valoracion
+// =========================================
+
 export const create = async (req, res, next) => {
-  const { body = {}, decoded = {} } = req;
+  const { body = {}, decoded = {}, params } = req;
   // eslint-disable-next-line camelcase
   const { userType, idType: id_cliente } = decoded;
+  // eslint-disable-next-line camelcase
+  const { productId: id_producto } = params;
+  // eslint-disable-next-line camelcase
+  const { serviceId: id_servicio } = params;
 
   if (userType !== "Cliente") {
     return res.status(401).json({
@@ -14,9 +22,21 @@ export const create = async (req, res, next) => {
   }
 
   try {
+    const { success, data, error } = await ValoracionSchema.safeParseAsync(
+      body
+    );
+    if (!success) {
+      console.log("estoy por aqui");
+      return next({
+        message: "Validation error",
+        status: 400,
+        error,
+      });
+    }
+
     const result = await prisma.valoracion.create({
       // eslint-disable-next-line camelcase
-      data: { ...body, id_cliente },
+      data: { ...data, id_cliente, id_producto, id_servicio },
     });
 
     res.status(201);
@@ -28,6 +48,10 @@ export const create = async (req, res, next) => {
   }
 };
 
+// =========================================
+// * Obtener todas las valoraciones de un producto o servicio, o todas las valoraciones existentes en la tabla
+// =========================================
+
 export const all = async (req, res, next) => {
   const { query, params } = req;
   const { offset, limit } = parsePaginationParams(query);
@@ -35,16 +59,22 @@ export const all = async (req, res, next) => {
     fields,
     ...query,
   });
-  const { productId } = params;
-  console.log(productId);
+  const { productId, serviceId } = params;
+  console.log(productId, serviceId);
 
   try {
+    // let whereCondition = {
+    //   OR: [{ id_producto: productId }, { id_servicio: serviceId }],
+    // };
+
     let whereCondition = {
-      OR: [{ id_producto: productId }, { id_servicio: productId }],
+      id_producto: productId,
+      id_servicio: serviceId,
     };
 
-    // Si productId es indefinido, no aplicamos la condición al where
-    if (productId === undefined) {
+    // *  Si productId es indefinido, no aplicamos la condición al where
+
+    if (productId === undefined && serviceId === undefined) {
       whereCondition = {};
     }
 
@@ -62,10 +92,20 @@ export const all = async (req, res, next) => {
               nombre: true,
             },
           },
+          servicio: {
+            select: {
+              id: true,
+              nombre: true,
+            },
+          },
         },
         where: whereCondition,
       }),
-      prisma.valoracion.count(),
+
+      // * Para contar solo las valoraciones de un producto en especifico.
+      prisma.valoracion.count({
+        where: whereCondition,
+      }),
     ]);
 
     res.json({
@@ -82,6 +122,10 @@ export const all = async (req, res, next) => {
     next(error);
   }
 };
+
+// =========================================
+// * Obtener una valoracion por su id para luego leerla, actualizarla o eliminarla.
+// =========================================
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
@@ -106,11 +150,18 @@ export const id = async (req, res, next) => {
   }
 };
 
+// =========================================
+// * Ver una valoracion por su Id
+// =========================================
 export const read = async (req, res, next) => {
   res.json({
     data: req.result,
   });
 };
+
+// =========================================
+// * Actualizar una valoracion por su Id
+// =========================================
 
 export const update = async (req, res, next) => {
   const { body = {}, params = {} } = req;
@@ -134,6 +185,10 @@ export const update = async (req, res, next) => {
     next(error);
   }
 };
+
+// =========================================
+// * Eliminar una valoracion por su Id
+// =========================================
 
 export const remove = async (req, res) => {
   const { params = {} } = req;
