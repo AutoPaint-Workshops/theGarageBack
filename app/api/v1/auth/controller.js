@@ -13,8 +13,6 @@ import {
   encryptPassword,
   verifyPassword,
 } from './utils.js';
-// import { fields } from './model.js';
-// import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 
 export const tipo = async (req, res, next) => {
   const { params = {} } = req;
@@ -37,12 +35,11 @@ export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
   try {
     const { success, data, error } = await validateCreate(body, tipo);
-    if (!success)
+    if (!success) {
       return next({
-        message: 'Error de validación',
-        status: 400,
         error,
       });
+    }
 
     const { userData, userTypeData } = data;
 
@@ -108,8 +105,6 @@ export const signin = async (req, res, next) => {
     const { success, data, error } = await validateSignIn(body, tipo);
     if (!success)
       return next({
-        message: 'Error de validación',
-        status: 400,
         error,
       });
 
@@ -191,8 +186,6 @@ export const passwordRecovery = async (req, res, next) => {
     const { success, data, error } = await validatePasswordRecovery(body);
     if (!success)
       return next({
-        message: 'Error de validación',
-        status: 400,
         error,
       });
 
@@ -232,8 +225,6 @@ export const updatePassword = async (req, res, next) => {
     const { success, data, error } = await validatePasswordUpdate(body);
     if (!success)
       return next({
-        message: 'Error de validación',
-        status: 400,
         error,
       });
 
