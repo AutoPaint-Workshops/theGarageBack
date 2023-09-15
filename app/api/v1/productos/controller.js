@@ -3,6 +3,12 @@ import { ProductosSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
 import fs from "fs";
+import { filtrarProductosPorCalificacion } from "./utils.js";
+
+/**
+ * Controlador para Crear un producto
+ *
+ */
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded = {} } = req;
@@ -17,19 +23,6 @@ export const create = async (req, res, next) => {
   }
 
   try {
-    // * Subo las fotos a cloudinary
-    const promises = files.map((file) => uploadFiles(file.path));
-    const resultados = await Promise.all(promises);
-
-    // * Creo estructura de fotos para la base de datos
-    const fotosCloudinary = [];
-    for (let i = 0; i < files.length; i++) {
-      fotosCloudinary.push({ url_foto: resultados[i].url });
-    }
-
-    // * Elimino las fotos del servidor temporales, ya no las necesito.
-    files.forEach((file) => fs.unlinkSync(file.path));
-
     const { success, data, error } = await ProductosSchema.safeParseAsync({
       ...body,
       precio: parseInt(body.precio),
@@ -46,21 +39,60 @@ export const create = async (req, res, next) => {
       });
     }
 
+    const resultCategoria = await prisma.categoria.findMany({
+      where: {
+        nombre_categoria: body.nombre_categoria,
+      },
+    });
+
+    const Idcategoria = resultCategoria[0].id;
+    const promises = files.map((file) => uploadFiles(file.path));
+    const resultados = await Promise.all(promises);
+    const fotosCloudinary = [];
+    for (let i = 0; i < files.length; i++) {
+      fotosCloudinary.push({ url_foto: resultados[i].url });
+    }
+
+    files.forEach((file) => fs.unlinkSync(file.path));
+
+    delete data.nombre_categoria;
+
     const result = await prisma.producto.create({
       data: {
         ...data,
         fotos: { create: fotosCloudinary },
         // eslint-disable-next-line camelcase
         id_empresa,
+        id_categoria: Idcategoria,
       },
-      //   * fotos: { create: body.fotosCloudinary } => Crea las fotos del producto y crea la relación con el producto
+
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+        ficha_tecnica: true,
+        precio: true,
+        cantidad_disponible: true,
+        estatus: true,
+        tipo_entrega: true,
+        marca: true,
+        impuestos: true,
+        fecha_creacion: true,
+        empresa: { select: { razon_social: true } },
+
+        categoria: {
+          select: {
+            nombre_categoria: true,
+          },
+        },
+        fotos: true,
+        valoraciones: true,
+      },
     });
     res.status(201);
     res.json({
       data: result,
     });
-
-    // res.json({ body, files });
   } catch (error) {
     next(error);
   }
@@ -77,6 +109,7 @@ export const search = async (req, res, next) => {
   const { searchTerm } = params;
 
   const keywords = searchTerm.split("-");
+
   try {
     const [result, total] = await Promise.all([
       prisma.producto.findMany({
@@ -107,8 +140,8 @@ export const search = async (req, res, next) => {
         where: {
           OR: keywords.map((keyword) => ({
             nombre: {
-              contains: keyword, // Buscar coincidencias en el nombre
-              mode: "insensitive", // Hacer la búsqueda insensible a mayúsculas/minúsculas
+              contains: keyword,
+              mode: "insensitive",
             },
           })),
         },
@@ -276,17 +309,85 @@ export const read = async (req, res, next) => {
 };
 
 export const update = async (req, res, next) => {
-  const { body = {}, params = {} } = req;
+  const { body = {}, decoded = {}, params = {} } = req;
   const { id } = params;
+  const files = req.files;
+  // eslint-disable-next-line camelcase
+  const { userType } = decoded;
+
+  if (userType !== "Empresa") {
+    return res.status(401).json({
+      error: "No autorizado",
+    });
+  }
 
   try {
+    const { success, data, error } =
+      await ProductosSchema.partial().safeParseAsync({
+        ...body,
+        ...(body.precio ? { precio: parseInt(body.precio) } : {}),
+        ...(body.cantidad_disponible
+          ? { cantidad_disponible: parseInt(body.cantidad_disponible) }
+          : {}),
+        ...(body.estatus ? { estatus: Boolean(body.estatus) } : {}),
+        ...(body.impuestos ? { impuestos: parseFloat(body.impuestos) } : {}),
+      });
+
+    if (!success) {
+      return next({
+        message: "Validation error",
+        status: 400,
+        error,
+      });
+    }
+    let newData = { ...data };
+
+    if (body.nombre_categoria) {
+      const resultCategoria = await prisma.categoria.findMany({
+        where: {
+          nombre_categoria: body.nombre_categoria,
+        },
+      });
+
+      if (resultCategoria.length > 0) {
+        const Idcategoria = resultCategoria[0].id;
+        newData = { ...newData, id_categoria: Idcategoria };
+        delete newData.nombre_categoria;
+      }
+    }
+
+    if (files.length > 0) {
+      const promises = files.map((file) => uploadFiles(file.path));
+      const resultados = await Promise.all(promises);
+
+      const fotosCloudinary = [];
+      for (let i = 0; i < files.length; i++) {
+        fotosCloudinary.push({ url_foto: resultados[i].url });
+      }
+
+      files.forEach((file) => fs.unlinkSync(file.path));
+      newData = {
+        ...newData,
+        fotos: { deleteMany: {}, create: fotosCloudinary },
+      };
+    }
+
     const result = await prisma.producto.update({
       where: {
         id,
       },
       data: {
-        ...body,
+        ...newData,
         fecha_actualizacion: new Date().toISOString(),
+      },
+      include: {
+        fotos: true,
+        valoraciones: true,
+        categoria: {
+          select: {
+            nombre_categoria: true,
+          },
+        },
       },
     });
 
@@ -309,6 +410,115 @@ export const remove = async (req, res) => {
 
     res.status(204);
     res.end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Controlador para traer productos con filtros
+ */
+
+export const filter = async (req, res, next) => {
+  const {
+    filterCategorias,
+    filterCalificacion,
+    filterMarcas,
+    filterAlmacen,
+    precioMin,
+    precioMax,
+  } = req.query;
+
+  const categorias = filterCategorias ? filterCategorias.split("-") : [];
+  const calificaciones = filterCalificacion
+    ? filterCalificacion.split("-").map(Number)
+    : [];
+  const marcas = filterMarcas ? filterMarcas.split("-") : [];
+  const almacenes = filterAlmacen ? filterAlmacen.split("-") : [];
+  const precioI = precioMin ? Number(precioMin) : 0;
+  const precioF = precioMax ? Number(precioMax) : 0;
+
+  const { query } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  try {
+    const where = {};
+
+    // uso la relacion existente entre servicio y categoria para filtrar por categorias
+    if (categorias.length > 0) {
+      where.categoria = {
+        nombre_categoria: {
+          in: categorias,
+        },
+      };
+    }
+    if (marcas.length > 0) {
+      where.marca = {
+        in: marcas,
+      };
+    }
+    if (almacenes.length > 0) {
+      console.log(almacenes);
+      where.empresa = {
+        razon_social: {
+          in: almacenes,
+        },
+      };
+    }
+    if (precioI > 0 && precioF > 0) {
+      where.precio = {
+        gte: precioI,
+        lte: precioF,
+      };
+    }
+
+    const [result, total] = await Promise.all([
+      prisma.producto.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          empresa: {
+            select: {
+              razon_social: true,
+            },
+          },
+          fotos: true,
+          valoraciones: true,
+          categoria: {
+            select: {
+              nombre_categoria: true,
+            },
+          },
+        },
+        where,
+      }),
+      prisma.producto.count({ where }),
+    ]);
+
+    // Filtrar productos por calificacion o retornar todos los productos
+
+    const productosFiltrados =
+      calificaciones.length > 0
+        ? filtrarProductosPorCalificacion(result, filterCalificacion)
+        : undefined;
+
+    res.json({
+      data: productosFiltrados ? productosFiltrados : result,
+      meta: {
+        limit,
+        offset,
+        total: productosFiltrados ? productosFiltrados.length : total,
+        orderBy,
+        direction,
+      },
+    });
   } catch (error) {
     next(error);
   }
