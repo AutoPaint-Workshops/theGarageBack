@@ -1,20 +1,29 @@
-import { prisma } from "../../../database.js";
-import { signToken } from "../auth.js";
-import { encryptPassword, verifyPassword } from "./model.js";
-// import { fields } from './model.js';
-// import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { prisma } from '../../../database.js';
+import { signToken } from '../auth.js';
+import {
+  validateCreate,
+  validatePasswordRecovery,
+  validatePasswordUpdate,
+  validateSignIn,
+} from './model.js';
+import {
+  ifType,
+  isActive,
+  urlFoto,
+  encryptPassword,
+  verifyPassword,
+} from './utils.js';
 
 export const tipo = async (req, res, next) => {
   const { params = {} } = req;
   try {
-    const tipo = params.tipo;
-    if (tipo !== "cliente" && tipo !== "empresa" && tipo !== "administrador") {
+    if (ifType(params.tipo)) {
       next({
-        message: "Tipo de usuario inválido",
+        message: 'Tipo de usuario inválido',
         status: 404,
       });
     } else {
-      req.tipo = tipo;
+      req.tipo = params.tipo;
       next();
     }
   } catch (error) {
@@ -25,16 +34,31 @@ export const tipo = async (req, res, next) => {
 export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
   try {
-    const password = await encryptPassword(body.userData.contrasena);
-    const { userData, userTypeData } = body;
+    const { success, data, error } = await validateCreate(body, tipo);
+    if (!success) {
+      return next({
+        error,
+      });
+    }
+
+    const { userData, userTypeData } = data;
+
+    const password = await encryptPassword(data.userData.contrasena);
+    const foto = urlFoto(userData);
+    const estatus = isActive(tipo);
+
     const userResult = await prisma.usuario.create({
       data: {
         ...userData,
+        url_foto: foto,
+        estatus: estatus,
         contrasena: password,
       },
     });
+
     const userID = userResult.id;
-    if (tipo === "cliente") {
+
+    if (tipo === 'cliente') {
       await prisma.cliente.create({
         data: {
           id_usuario: userID,
@@ -42,10 +66,11 @@ export const signup = async (req, res, next) => {
         },
       });
       res.json({
-        message: "Usuario creado satisfactoriamente",
+        message: 'Usuario creado satisfactoriamente',
       });
     }
-    if (tipo === "empresa") {
+
+    if (tipo === 'empresa') {
       await prisma.empresa.create({
         data: {
           id_usuario: userID,
@@ -54,18 +79,19 @@ export const signup = async (req, res, next) => {
       });
       res.json({
         message:
-          "Solicitud de creación recibida, le llegará un correo en menos de 24 horas con la respuesta",
+          'Solicitud de creación recibida, le llegará un correo en menos de 24 horas con la respuesta',
       });
     }
-    if (tipo === "administrador") {
+
+    if (tipo === 'administrador') {
       res.json({
-        message: "Usuario creado satisfactoriamente",
+        message: 'Usuario creado satisfactoriamente',
       });
     }
     res.status(201);
   } catch (error) {
     next({
-      message: "No se pudo crear el usuario, intentelo mas tarde",
+      message: 'No se pudo crear el usuario, intentelo mas tarde',
       status: 400,
       error,
     });
@@ -76,7 +102,14 @@ export const signin = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const { correo, contrasena } = body;
+    const { success, data, error } = await validateSignIn(body, tipo);
+    if (!success)
+      return next({
+        error,
+      });
+
+    const { correo, contrasena } = data;
+
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
@@ -89,7 +122,7 @@ export const signin = async (req, res, next) => {
 
     if (user === null) {
       return next({
-        message: "Correo o contraseña invalidos",
+        message: 'Correo o contraseña invalidos',
         status: 401,
       });
     }
@@ -98,25 +131,9 @@ export const signin = async (req, res, next) => {
 
     if (!confirmPassword) {
       return next({
-        message: "Correo o contraseña invalidos",
+        message: 'Correo o contraseña invalidos',
         status: 401,
       });
-    }
-
-    if (user.tipo_usuario === "Administrador") {
-      const { id, tipo_usuario: userType } = user;
-      const token = signToken({ id, userType });
-      res.json({
-        data: {
-          ...user,
-          id: undefined,
-          contrasena: undefined,
-        },
-        meta: {
-          token,
-        },
-      });
-      return next(res);
     }
 
     const typeData = !!user.cliente
@@ -125,15 +142,16 @@ export const signin = async (req, res, next) => {
             id_usuario: user.id,
           },
         })
-      : await prisma.empresa.findUnique({
+      : !!user.empresa
+      ? await prisma.empresa.findUnique({
           where: {
             id_usuario: user.id,
           },
-        });
+        })
+      : { id: 'Admin' };
 
     const { id, tipo_usuario: userType } = user;
     const { id: idType } = typeData;
-    // //agregado por w
 
     const token = signToken({ id, userType, idType });
 
@@ -165,7 +183,13 @@ export const passwordRecovery = async (req, res, next) => {
   const { body = {} } = req;
 
   try {
-    const { correo } = body;
+    const { success, data, error } = await validatePasswordRecovery(body);
+    if (!success)
+      return next({
+        error,
+      });
+
+    const { correo } = data;
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
@@ -181,13 +205,13 @@ export const passwordRecovery = async (req, res, next) => {
     if (user === null) {
       return next({
         message:
-          "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar",
+          'Si su correo se encuentra registrado, recibira un correo con un enlace para continuar',
         status: 200,
       });
     }
     res.json({
       message:
-        "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar",
+        'Si su correo se encuentra registrado, recibira un correo con un enlace para continuar',
       status: 200,
     });
   } catch (error) {
@@ -198,11 +222,18 @@ export const passwordRecovery = async (req, res, next) => {
 export const updatePassword = async (req, res, next) => {
   const { body = {} } = req;
   try {
-    const { correo, contrasena, codigo } = body;
+    const { success, data, error } = await validatePasswordUpdate(body);
+    if (!success)
+      return next({
+        error,
+      });
 
+    const { correo, contrasena, codigo } = data;
+
+    // // Espacio para la verificacion del código
     if (!codigo) {
       return next({
-        message: "Código invalido",
+        message: 'Código invalido',
         status: 401,
       });
     }
