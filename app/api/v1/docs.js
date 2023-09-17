@@ -1,9 +1,10 @@
 import merge from "lodash/merge.js";
 import productos from "./productos/docs.json" assert { type: "json" };
+import valoraciones from "./valoraciones/docs.json" assert { type: "json" };
 
 export const swaggerDefinition = merge(
   {
-    openapi: "3.0.0",
+    openapi: "3.0.3",
     info: {
       title: "The Garage API",
       version: "1.0.0",
@@ -18,9 +19,14 @@ export const swaggerDefinition = merge(
     tags: [
       {
         name: "Productos",
-        description: "API for productos in the system",
+        description: "Endpoints para productos",
+      },
+      {
+        name: "Valoraciones",
+        description: "Endpoints para valoraciones",
       },
     ],
   },
-  productos
+  productos,
+  valoraciones
 );
