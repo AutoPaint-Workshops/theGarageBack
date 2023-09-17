@@ -92,19 +92,17 @@ export const all = async (req, res, next) => {
         include: {
           cliente: {
             select: {
-              id: true,
               nombre_completo: true,
             },
           },
+
           producto: {
             select: {
-              id: true,
               nombre: true,
             },
           },
           servicio: {
             select: {
-              id: true,
               nombre: true,
             },
           },

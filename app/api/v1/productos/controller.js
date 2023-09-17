@@ -45,6 +45,12 @@ export const create = async (req, res, next) => {
       },
     });
 
+    if (resultCategoria.length === 0) {
+      return res.status(404).json({
+        error: "Hay un problema con la Categoria",
+      });
+    }
+
     const Idcategoria = resultCategoria[0].id;
     const promises = files.map((file) => uploadFiles(file.path));
     const resultados = await Promise.all(promises);
@@ -185,6 +191,11 @@ export const all = async (req, res, next) => {
           categoria: {
             select: {
               nombre_categoria: true,
+            },
+          },
+          empresa: {
+            select: {
+              razon_social: true,
             },
           },
         },
@@ -353,7 +364,10 @@ export const update = async (req, res, next) => {
         const Idcategoria = resultCategoria[0].id;
         newData = { ...newData, id_categoria: Idcategoria };
         delete newData.nombre_categoria;
-      }
+      } else
+        return res.status(404).json({
+          error: "Hay un problema con la Categoria",
+        });
     }
 
     if (files.length > 0) {

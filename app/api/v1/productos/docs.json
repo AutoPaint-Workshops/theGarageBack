@@ -32,6 +32,11 @@
           "tags":[
             "Productos"
           ],
+          "security":[
+            {
+              "BearerAuth":[]
+            }
+          ],
           "description":"Crear un producto",
           "requestBody":{
             "content":{
@@ -87,6 +92,11 @@
           "tags":[
             "Productos"
           ],
+          "security":[
+            {
+              "BearerAuth":[]
+            }
+          ],
 
           "parameters":[
             {
@@ -122,6 +132,11 @@
         "put":{
           "tags":[
             "Productos"
+          ],
+          "security":[
+            {
+              "BearerAuth":[]
+            }
           ],
           "description":"Actualizar un producto",
           "requestBody":{
@@ -191,7 +206,126 @@
 
         
         }
-      }
+      },
+
+      "/productos/misProductos/":{
+        "get":{
+          "description":"Obtener todos los productos de una Empresa",
+          "tags":[
+            "Productos"
+          ],
+          "security":[
+            {
+              "BearerAuth":[]
+            }
+          ],
+          "responses":{
+            "200":{
+              "content":{
+                "application/json":{
+                  "schema":{
+                    "type":"object",
+                    "properties":{
+                      "data":{
+                        "type":"array",
+                        "items":{
+                          "$ref":"#/components/schemas/Producto"
+                          
+                        }
+                      }
+                    }
+                   
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+        },
+        "/productos/filter":{
+          "get":{
+            "description":"Obtener los productos de una empres filtrado por query de busqueda",
+            "tags":[
+              "Productos"
+            ],
+            "parameters":[
+              {
+                "in":"query",
+                "name":"filterCategorias",
+                "required":false,
+                "schema":{
+                  "type":"string"
+                },
+                "description":"nombre o nombres de categorias separados por (-)"
+              },
+              {
+                "in":"query",
+                "name":"filterMarcas",
+                "required":false,
+                "schema":{
+                  "type":"string"
+                },
+                "description":"nombre o nombres de marcas separados por (-)"
+              },
+              {
+                "in":"query",
+                "name":"precioMin",
+                "required":false,
+                "schema":{
+                  "type":"string"
+                },
+                "description":"precio minimo debe ir acompañado del precio Maaximo"
+              },
+              {
+                "in":"query",
+                "name":"precioMax",
+                "required":false,
+                "schema":{
+                  "type":"string"
+                },
+                "description":"precio maximo debe ir acompañado del precio minimo"
+              },
+              {
+                "in":"query",
+                "name":"filterAlmacen",
+                "required":false,
+                "schema":{
+                  "type":"string"
+                },
+                "description":"nombre o nombres de almacenes separados por (-)"
+            }
+
+            ],
+
+            "responses":{
+              "200":{
+                "content":{
+                  "application/json":{
+                    "schema":{
+                      "type":"object",
+                      "properties":{
+                        "data":{
+                          "type":"array",
+                          "items":{
+                            "$ref":"#/components/schemas/Producto"
+                            
+                          }
+                        }
+                      }
+                     
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        
+
+        
+
+      
 
     },
     "components":{
@@ -300,6 +434,16 @@
         }
 
 
+        },
+        "securitySchemes":{
+          "BearerAuth":{
+            "type":"apiKey",
+            "scheme":"bearer",
+            "bearerFormat":"JWT",
+            "in":"header",
+            "name":"Authorization"
+          }
+    
         }
       }
     }
