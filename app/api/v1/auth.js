@@ -1,6 +1,5 @@
-import jwt from "jsonwebtoken";
-
-import { configuration } from "../../config.js";
+import jwt from 'jsonwebtoken';
+import { configuration } from '../../config.js';
 
 const { token } = configuration;
 const { secret, expires } = token;
@@ -12,13 +11,13 @@ export const signToken = (payload, expiresIn = expires) => {
 };
 
 export const auth = (req, res, next) => {
-  let token = req.headers.authorization || "";
-  if (token.startsWith("Bearer")) {
+  let token = req.headers.authorization || '';
+  if (token.startsWith('Bearer')) {
     token = token.substring(7);
   }
   if (!token) {
     return next({
-      message: "Prohibido",
+      message: 'Prohibido',
       status: 403,
     });
   }
@@ -26,26 +25,13 @@ export const auth = (req, res, next) => {
   jwt.verify(token, secret, function (err, decoded) {
     if (err) {
       return next({
-        message: "Prohibido",
+        message: 'Prohibido',
         status: 403,
       });
     }
     req.decoded = decoded;
     next();
   });
-};
-
-export const me = (req, res, next) => {
-  const { decoded = {}, params = {} } = req;
-  const { id: userID } = decoded;
-  const { id } = params;
-  if (userID !== id) {
-    return next({
-      message: "Prohibido",
-      status: 403,
-    });
-  }
-  next();
 };
 
 export const owner = (req, res, next) => {
@@ -55,7 +41,7 @@ export const owner = (req, res, next) => {
 
   if (ownerId !== idEmpresa) {
     return next({
-      message: "Prohibido",
+      message: 'Prohibido',
       status: 403,
     });
   }

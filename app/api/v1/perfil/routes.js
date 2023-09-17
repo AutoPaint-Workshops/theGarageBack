@@ -1,5 +1,4 @@
 import { Router } from 'express';
-
 import * as controller from './controller.js';
 import { auth } from '../auth.js';
 
@@ -19,3 +18,7 @@ router
   .get(auth, controller.read)
   .put(auth, controller.update)
   .patch(auth, controller.update);
+
+router.param('id', controller.id);
+
+router.route('/:id').get(controller.readById);

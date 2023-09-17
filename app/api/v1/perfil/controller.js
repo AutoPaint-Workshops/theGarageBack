@@ -4,17 +4,18 @@ import { fields } from './model.js';
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
-    const result = await prisma.usuario.findUnique({
+    const { id } = params;
+    const result = await prisma.empresa.findUnique({
       where: {
-        id: params.id,
-      },
-      include: {
-        cliente: true,
-        empresa: true,
+        numero_documento_empresa: id,
       },
     });
 
-    req.result = result;
+    if (result) {
+      req.result = result;
+    } else {
+      next({ message: 'Usuario invalido', status: 400 });
+    }
 
     next();
   } catch (error) {
@@ -23,82 +24,146 @@ export const id = async (req, res, next) => {
 };
 
 export const read = async (req, res, next) => {
-  res.json({
-    data: req.result,
-  });
-};
-
-export const update = async (req, res, next) => {
-  const { body = {}, decoded = {} } = req;
-  const { id } = decoded;
-
+  const { decoded } = req;
   try {
-    const { tipo, data } = body;
-    if (tipo === 'usuario') {
-      const result = await prisma.usuario.update({
-        where: {
-          id,
-        },
-        include: {
-          cliente: true,
-          empresa: true,
-        },
-        data: {
-          ...data,
-          fecha_actualizacion: new Date().toISOString(),
-        },
-      });
+    const { id, idType, userType } = decoded;
+    const user = await prisma.usuario.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        cliente: true,
+        empresa: true,
+      },
+    });
 
-      res.json({
-        data: result,
+    if (user === null) {
+      return next({
+        message: 'Usuario no encontrado',
+        status: 401,
       });
     }
 
-    if (tipo === 'cliente') {
-      const result = await prisma.cliente.update({
-        where: {
-          id_usuario: id,
-        },
-        data: {
-          ...data,
-        },
-      });
+    const typeData =
+      userType === 'Cliente'
+        ? await prisma.cliente.findUnique({
+            where: {
+              id: idType,
+            },
+          })
+        : userType === 'Empresa'
+        ? await prisma.empresa.findUnique({
+            where: {
+              id: idType,
+            },
+          })
+        : { id: 'Admin' };
 
-      res.json({
-        data: result,
-      });
-    }
-
-    if (tipo === 'empresa') {
-      const result = await prisma.empresa.update({
-        where: {
-          id_usuario: id,
+    res.json({
+      data: {
+        user: {
+          ...user,
+          id: undefined,
+          contrasena: undefined,
+          cliente: undefined,
+          empresa: undefined,
         },
-        data: {
-          ...data,
+        typeData: {
+          ...typeData,
+          id: undefined,
+          id_usuario: undefined,
         },
-      });
-
-      res.json({
-        data: result,
-      });
-    }
+      },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-export const remove = async (req, res) => {
-  const { params = {} } = req;
-  const { id } = params;
+export const update = async (req, res, next) => {
+  const { body = {}, decoded = {} } = req;
+  const { id, idType, userType } = decoded;
 
   try {
-    await prisma.usuario.delete({
-      where: { id },
+    const { userData = null, userTypeData = null } = body;
+
+    if (!userData && !userTypeData)
+      return next({ message: 'Nada que actualizar', status: 400 });
+
+    if (userData) {
+      const result = await prisma.usuario.update({
+        where: {
+          id,
+        },
+        data: {
+          ...userData,
+          fecha_actualizacion: new Date().toISOString(),
+        },
+      });
+      req.user = result;
+    }
+
+    if (userType === 'Cliente' && userTypeData) {
+      const result = await prisma.cliente.update({
+        where: {
+          id: idType,
+        },
+        data: {
+          ...userTypeData,
+        },
+      });
+      req.typeData = result;
+    }
+
+    if (userType === 'Empresa' && userTypeData) {
+      const result = await prisma.empresa.update({
+        where: {
+          id: idType,
+        },
+        data: {
+          ...userTypeData,
+        },
+      });
+      req.typeData = result;
+    }
+    res.json({
+      user: { ...req.user },
+      typeData: { ...req.typeData },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const readById = async (req, res, next) => {
+  const { result } = req;
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        id: result.id_usuario,
+      },
+      include: {
+        cliente: true,
+        empresa: true,
+      },
     });
 
-    res.status(204);
-    res.end();
+    res.json({
+      data: {
+        user: {
+          ...user,
+          id: undefined,
+          contrasena: undefined,
+          cliente: undefined,
+          empresa: undefined,
+        },
+        typeData: {
+          ...result,
+          id: undefined,
+          id_usuario: undefined,
+        },
+      },
+    });
   } catch (error) {
     next(error);
   }
