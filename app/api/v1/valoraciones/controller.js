@@ -11,9 +11,7 @@ export const create = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType, idType: id_cliente } = decoded;
   // eslint-disable-next-line camelcase
-  const { productId: id_producto } = params;
-  // eslint-disable-next-line camelcase
-  const { serviceId: id_servicio } = params;
+  const { productId: id_producto, serviceId: id_servicio } = params;
 
   if (userType !== "Cliente") {
     return res.status(401).json({
@@ -26,7 +24,6 @@ export const create = async (req, res, next) => {
       body
     );
     if (!success) {
-      console.log("estoy por aqui");
       return next({
         message: "Validation error",
         status: 400,
@@ -37,6 +34,14 @@ export const create = async (req, res, next) => {
     const result = await prisma.valoracion.create({
       // eslint-disable-next-line camelcase
       data: { ...data, id_cliente, id_producto, id_servicio },
+      include: {
+        cliente: {
+          select: {
+            id: true,
+            nombre_completo: true,
+          },
+        },
+      },
     });
 
     res.status(201);
@@ -60,7 +65,6 @@ export const all = async (req, res, next) => {
     ...query,
   });
   const { productId, serviceId } = params;
-  console.log(productId, serviceId);
 
   try {
     // let whereCondition = {
@@ -86,15 +90,19 @@ export const all = async (req, res, next) => {
           [orderBy]: direction,
         },
         include: {
+          cliente: {
+            select: {
+              nombre_completo: true,
+            },
+          },
+
           producto: {
             select: {
-              id: true,
               nombre: true,
             },
           },
           servicio: {
             select: {
-              id: true,
               nombre: true,
             },
           },

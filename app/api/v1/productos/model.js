@@ -11,7 +11,7 @@ export const ProductosSchema = z
       .transform(function (value) {
         return escape(value);
       }),
-    id_categoria: z.string(),
+    nombre_categoria: z.string(),
     descripcion: z
       .string()
       .trim()
