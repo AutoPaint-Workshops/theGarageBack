@@ -1,6 +1,8 @@
 {
   "paths": {
+
     "/orden_productos": {
+
       "get": {
         "tags": ["Ordenes de Productos"],
         "description": "Obtener todas las Ordenes de Productos",
@@ -42,6 +44,7 @@
                 "properties": {
                   "ordenProductos": {
                     "$ref": "#/components/schemas/ordenProductos"
+
                   }
                 }
               }
@@ -59,6 +62,7 @@
                         "items": {
                           "$ref": "#/components/schemas/ordenProductoCreated"
                         }
+
                       }
                     }
                   }
@@ -83,7 +87,9 @@
         }
       }
     },
+
     "/orden_productos/{id}": {
+
       "get": {
         "description": "Obtener una orden de producto por id",
         "tags": ["Ordenes de Productos"],
