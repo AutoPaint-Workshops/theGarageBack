@@ -1,0 +1,353 @@
+{
+  "paths": {
+    "/api/v1/orden_productos": {
+      "get": {
+        "tags": ["Ordenes de Productos"],
+        "description": "Obtener todas las Ordenes de Productos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ordenProductoCreated"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Ordenes de Productos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Crear una orden de producto",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ordenProductos": {
+                    "$ref": "#/components/schemas/ordenProductos"
+                  },
+                  "detallesOrdenProductos": {
+                    "$ref": "#/components/schemas/detalleOrdenProductos"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "ordenProductos": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ordenProductoCreated"
+                        }
+                      },
+                      "detallesOrdenProductos": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/detallesOrdenProductos"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UnauthorizedError"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orden_productos/{id}": {
+      "get": {
+        "description": "Obtener una orden de producto por id",
+        "tags": ["Ordenes de Productos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+
+        "parameters": [
+          {
+            "in": "path",
+            "name": "Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id de la orden"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ordenProductos": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ordenProductoCreated"
+                      }
+                    },
+                    "detallesOrdenProductos": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/detallesOrdenProductos"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "put": {
+        "tags": ["Productos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Actualizar una orden",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ordenUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ordenProductoUpdated"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ordenProductos": {
+        "type": "object",
+        "properties": {
+          "subtotal": {
+            "type": "number",
+            "example": "84033"
+          },
+          "total": {
+            "type": "number",
+            "example": "100000"
+          },
+          "estado": {
+            "type": "string",
+            "example": "Creado"
+          },
+          "detalleOrdenProductos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id_Producto": {
+                  "type": "string",
+                  "example": "5b1a76bb-bfbf-47fc-94b7-776737ac0551"
+                },
+                "cantidad": {
+                  "type": "number",
+                  "example": "1"
+                },
+                "precio": {
+                  "type": "number",
+                  "example": "100000"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ordenUpdate": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "example": "Pagado"
+          }
+        }
+      },
+
+      "ordenProductoCreated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "648391d4-b06e-4c9b-b69e-8b26dca1ea18"
+          },
+          "id_cliente": {
+            "type": "string",
+            "example": "0b6b22a9-91bc-4328-958a-83a10689a53f"
+          },
+          "fecha_orden": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-06-01T00:00:00.000Z"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": "84033"
+          },
+          "total": {
+            "type": "number",
+            "example": "100000"
+          },
+          "estado": {
+            "type": "string",
+            "example": "Creado"
+          },
+          "detalleOrdenProductos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id_Producto": {
+                  "type": "string",
+                  "example": "5b1a76bb-bfbf-47fc-94b7-776737ac0551"
+                },
+                "cantidad": {
+                  "type": "number",
+                  "example": "1"
+                },
+                "precio": {
+                  "type": "number",
+                  "example": "100000"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ordenProductoUpdated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "648391d4-b06e-4c9b-b69e-8b26dca1ea18"
+          },
+          "id_cliente": {
+            "type": "string",
+            "example": "0b6b22a9-91bc-4328-958a-83a10689a53f"
+          },
+          "fecha_orden": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-06-01T00:00:00.000Z"
+          },
+          "subtotal": {
+            "type": "number",
+            "example": "84033"
+          },
+          "total": {
+            "type": "number",
+            "example": "100000"
+          },
+          "estado": {
+            "type": "string",
+            "example": "Creado"
+          },
+          "detalleOrdenProductos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id_Producto": {
+                  "type": "string",
+                  "example": "5b1a76bb-bfbf-47fc-94b7-776737ac0551"
+                },
+                "cantidad": {
+                  "type": "number",
+                  "example": "1"
+                },
+                "precio": {
+                  "type": "number",
+                  "example": "100000"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "UnauthorizedError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "No autorizado"
+          },
+          "status": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  }
+}

@@ -3,7 +3,9 @@ import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
-  const { body = {} } = req;
+  const { body = {}, decoded } = req;
+  const { idType } = decoded;
+  body.id_cliente = idType;
 
   try {
     const result = await prisma.orden_Servicios.create({
@@ -108,22 +110,6 @@ export const update = async (req, res, next) => {
     res.json({
       data: result,
     });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const remove = async (req, res) => {
-  const { params = {} } = req;
-  const { id } = params;
-
-  try {
-    await prisma.orden_Servicios.delete({
-      where: { id },
-    });
-
-    res.status(204);
-    res.end();
   } catch (error) {
     next(error);
   }
