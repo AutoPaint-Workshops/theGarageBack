@@ -19,6 +19,13 @@ router
   .put(auth, controller.update)
   .patch(auth, controller.update);
 
+router.route('/usuarios').get(auth, controller.all);
+router.route('/usuarios/:tipo').get(auth, controller.allByType);
+
 router.param('id', controller.id);
 
-router.route('/:id').get(controller.readById);
+router
+  .route('/:id')
+  .get(auth, controller.userById)
+  .put(auth, controller.updateById)
+  .patch(auth, controller.updateById);
