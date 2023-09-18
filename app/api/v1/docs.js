@@ -2,6 +2,7 @@ import merge from 'lodash/merge.js';
 import productos from './productos/docs.json' assert { type: 'json' };
 import valoraciones from './valoraciones/docs.json' assert { type: 'json' };
 import autenticacion from './auth/docs.json' assert { type: 'json' };
+import perfil from './perfil/docs.json' assert { type: 'json' };
 
 export const swaggerDefinition = merge(
   {
@@ -20,7 +21,11 @@ export const swaggerDefinition = merge(
     tags: [
       {
         name: 'Autenticación',
-        description: 'API for authentication process in the system',
+        description: 'Endpoints para registro e inicio de sesión',
+      },
+      {
+        name: 'Perfil',
+        description: 'Endpoints para consulta de perfil y actualizaciones',
       },
       {
         name: 'Productos',
@@ -33,6 +38,7 @@ export const swaggerDefinition = merge(
     ],
   },
   autenticacion,
+  perfil,
   productos,
   valoraciones,
 );

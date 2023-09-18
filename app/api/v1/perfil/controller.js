@@ -309,8 +309,6 @@ export const updateById = async (req, res, next) => {
     if (!userData && !userTypeData)
       return next({ message: 'Nada que actualizar', status: 400 });
 
-    console.log(result);
-
     if (userData) {
       const result = await prisma.usuario.update({
         where: {
