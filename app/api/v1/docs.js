@@ -5,6 +5,7 @@ import autenticacion from "./auth/docs.json" assert { type: "json" };
 import ordenProducto from "./Orden_Productos/docs.json" assert { type: "json" };
 import perfil from "./perfil/docs.json" assert { type: "json" };
 //import ordenServicio from "./Orden_Servicios/docs.json" assert { type: "json" };
+import servicios from "./servicios/docs.json" assert { type: "json" };
 
 export const swaggerDefinition = merge(
   {
@@ -28,7 +29,11 @@ export const swaggerDefinition = merge(
       {
         name: "Perfil",
         description: "Endpoints para consulta de perfil y actualizaciones",
+
+        name: "Autenticación",
+        description: "Endpoints para registro e inicio de sesión",
       },
+
       {
         name: "Productos",
         description: "Endpoints para productos",
@@ -40,6 +45,13 @@ export const swaggerDefinition = merge(
       {
         name: "Ordenes de Productos",
         description: "Endpoints para orden de Productos",
+
+        name: "Servicios",
+        description: "Endpoints para servicios",
+      },
+      {
+        name: "Valoraciones",
+        description: "Endpoints para valoraciones",
       },
     ],
   },
@@ -47,6 +59,8 @@ export const swaggerDefinition = merge(
   perfil,
   productos,
   valoraciones,
-  ordenProducto
+  ordenProducto,
   //  ordenServicio
+  servicios,
+  valoraciones
 );
