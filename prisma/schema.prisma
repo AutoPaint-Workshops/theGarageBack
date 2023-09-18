@@ -28,7 +28,7 @@ model Cliente {
   id_usuario       String            @unique @db.Uuid
   nombre_completo  String?           @db.VarChar(255)
   tipo_documento   String?           @db.VarChar(50)
-  numero_documento String?           @db.VarChar(50)
+  numero_documento String?           @unique @db.VarChar(50)
   telefono         String?           @db.VarChar(20)
   usuario          Usuario           @relation(fields: [id_usuario], references: [id])
   valoraciones     Valoracion[]
@@ -42,13 +42,13 @@ model Empresa {
   id_usuario                     String?    @unique @db.Uuid
   razon_social                   String?    @db.VarChar(255)
   tipo_documento_empresa         String?    @db.VarChar(50)
-  numero_documento_empresa       String?    @db.VarChar(50)
+  numero_documento_empresa       String?    @unique @db.VarChar(50)
   telefono                       String?    @db.VarChar(20)
   sitio_web                      String?    @db.Text
   camara_comercio                String?    @db.Text
   representante_legal            String?    @db.VarChar(255)
   tipo_documento_representante   String?    @db.VarChar(50)
-  numero_documento_representante String?    @db.VarChar(50)
+  numero_documento_representante String?    @unique @db.VarChar(50)
   correo_representante           String?    @db.VarChar(255)
   descripcion                    String?    @db.Text
   usuario                        Usuario?   @relation(fields: [id_usuario], references: [id])
