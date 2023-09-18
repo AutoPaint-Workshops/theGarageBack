@@ -1,0 +1,483 @@
+{
+  "paths": {
+    "/auth/cliente/signup": {
+      "post": {
+        "summary": "Registro de usuarios clientes",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userData": {
+                    "$ref": "#/components/schemas/SignUpUserBody"
+                  },
+                  "userTypeData": {
+                    "$ref": "#/components/schemas/SignUpClientBody"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Registrarse cómo cliente",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Usuario creado satisfactoriamente"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/empresa/signup": {
+      "post": {
+        "summary": "Registro de usuarios empresas",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userData": {
+                    "$ref": "#/components/schemas/SignUpUserBody"
+                  },
+                  "userTypeData": {
+                    "$ref": "#/components/schemas/SignUpCompanyBody"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Registrarse cómo empresa",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Solicitud de creación recibida, le llegará un correo en menos de 24 horas con la respuesta"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/administrador/signup": {
+      "post": {
+        "summary": "Registro de usuarios administradores",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userData": {
+                    "$ref": "#/components/schemas/SignUpUserBody"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Registrarse cómo administrador",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Usuario creado satisfactoriamente"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/signin": {
+      "post": {
+        "summary": "Inicio de sesión de usuarios",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInBody"
+              }
+            }
+          }
+        },
+        "description": "Iniciar sesión de usuario",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/SignInUserResponse"
+                        },
+                        "typeData": {
+                          "$ref": "#/components/schemas/SignInTypeData"
+                        },
+                        "Token": {
+                          "$ref": "#/components/schemas/Token"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/recuperarcontrasena": {
+      "post": {
+        "summary": "Solicitud recuperación de contraseña",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "correo": "recuperar@gmail.com"
+                }
+              }
+            }
+          }
+        },
+        "description": "Recuperar contraseña",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Atcualización de contraseña",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "correo": {
+                    "type": "string",
+                    "example": "recuperar@gmail.com"
+                  },
+                  "contrasena": {
+                    "type": "string",
+                    "example": "Contra123"
+                  },
+                  "codigo": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Actualizar contraseña",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SignUpUserBody": {
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "example": "userexample@gmail.com"
+          },
+          "contrasena": {
+            "type": "string",
+            "example": "User123"
+          },
+          "tipo_usuario": {
+            "type": "string",
+            "example": "Cliente"
+          },
+          "url_foto": {
+            "type": "string",
+            "example": "https://www.examplephoto.png"
+          },
+          "pais": {
+            "type": "string",
+            "example": "Colombia"
+          },
+          "ciudad": {
+            "type": "string",
+            "example": "Barranquilla"
+          },
+          "direccion": {
+            "type": "string",
+            "example": "direccion de prueba compania 123"
+          }
+        }
+      },
+      "SignUpClientBody": {
+        "type": "object",
+        "properties": {
+          "nombre_completo": {
+            "type": "string",
+            "example": "Carlos Andres Vergara"
+          },
+          "tipo_documento": {
+            "type": "string",
+            "example": "Cedula de ciudadania"
+          },
+          "numero_documento": {
+            "type": "string",
+            "example": "1472583691"
+          },
+          "telefono": {
+            "type": "string",
+            "example": "3005846589"
+          }
+        }
+      },
+      "SignUpCompanyBody": {
+        "type": "object",
+        "properties": {
+          "razon_social": {
+            "type": "string",
+            "example": "TODO AUTOS sas"
+          },
+          "tipo_documento_empresa": {
+            "type": "string",
+            "example": "NIT"
+          },
+          "numero_documento_empresa": {
+            "type": "string",
+            "example": "900123456"
+          },
+          "telefono": {
+            "type": "string",
+            "example": "3002514785"
+          },
+          "sitio_web": {
+            "type": "string",
+            "example": "https://exampleweb.com"
+          },
+          "camara_comercio": {
+            "type": "string",
+            "example": "https://www.url_documento.pdf"
+          },
+          "representante_legal": {
+            "type": "string",
+            "example": "Andres Mercado"
+          },
+          "tipo_documento_representante": {
+            "type": "string",
+            "example": "Cedula de ciudadania"
+          },
+          "numero_documento_representante": {
+            "type": "string",
+            "example": "55456789"
+          },
+          "correo_representante": {
+            "type": "string",
+            "example": "andresmercado@gmail.com"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Todos los repuestos que puedas encontrar en un solo sitio"
+          }
+        }
+      },
+      "SignUpTypeBody": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SignUpClientBody"
+          },
+          {
+            "$ref": "#/components/schemas/SignUpCompanyBody"
+          }
+        ]
+      },
+      "SignInBody": {
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "example": "exampleemail@gmail.com"
+          },
+          "contrasena": {
+            "type": "string",
+            "example": "Contra123"
+          }
+        }
+      },
+      "SignInUserResponse": {
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "example": "example@gmail.com"
+          },
+          "tipo_usuario": {
+            "type": "string",
+            "example": "Cliente / Empresa / Administrador"
+          },
+          "fecha_creacion": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-09-04T22:03:07.225Z"
+          },
+          "fecha_actualizacion": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-09-04T22:03:07.225Z"
+          },
+          "estatus": {
+            "type": "string",
+            "example": "Activo / Inactivo / Verificando"
+          },
+          "url_foto": {
+            "type": "string",
+            "example": "https://examplephoto.jpg"
+          },
+          "pais": {
+            "type": "string",
+            "example": "México"
+          },
+          "ciudad": {
+            "type": "string",
+            "example": "Michoacan"
+          },
+          "direccion": {
+            "type": "string",
+            "example": "calle 13 #23-52"
+          }
+        }
+      },
+      "SignInClientResponse": {
+        "type": "object",
+        "properties": {
+          "nombre_completo": {
+            "type": "string",
+            "example": "Carlos Andres Vergara"
+          },
+          "tipo_documento": {
+            "type": "string",
+            "example": "Cedula de ciudadania"
+          },
+          "numero_documento": {
+            "type": "string",
+            "example": "1472583691"
+          },
+          "telefono": {
+            "type": "string",
+            "example": "3005846589"
+          }
+        }
+      },
+      "SignInCompanyResponse": {
+        "type": "object",
+        "properties": {
+          "typeData": {
+            "type": "object",
+            "properties": {
+              "nombre_completo": {
+                "type": "string",
+                "example": "Carlos Andres Vergara"
+              },
+              "tipo_documento": {
+                "type": "string",
+                "example": "Cedula de ciudadania"
+              },
+              "numero_documento": {
+                "type": "string",
+                "example": "1472583691"
+              },
+              "telefono": {
+                "type": "string",
+                "example": "3005846589"
+              }
+            }
+          }
+        }
+      },
+      "Token": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjBjZDM0OGVjLTdkOTQtNGYzNS05ODhiLTE3ODFkNmNiMzZmOSIsInVzZXJUeXBlIjoiQ2xpZW50ZSIsImlkVHlwZSI6IjMwNWMyMDA3LTMxOTgtNDg1OS05YWQ2LTA1NTk4ODE0YzEyMyIsImlhdCI6MTY5MzkzMDE4MSwiZXhwIjoxNjkzOTMzNzgxfQ.xEirCmruyZOZeL8QJCvoiBjv-NNnI29yeMlXHq2pN6Y"
+              }
+            }
+          }
+        }
+      },
+      "SignInTypeData": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SignInClientResponse"
+          },
+          {
+            "$ref": "#/components/schemas/SignInCompanyResponse"
+          }
+        ]
+      }
+    }
+  }
+}
