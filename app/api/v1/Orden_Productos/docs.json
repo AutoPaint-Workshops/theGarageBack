@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/api/v1/orden_productos": {
+    "/orden_productos": {
       "get": {
         "tags": ["Ordenes de Productos"],
         "description": "Obtener todas las Ordenes de Productos",
@@ -42,9 +42,6 @@
                 "properties": {
                   "ordenProductos": {
                     "$ref": "#/components/schemas/ordenProductos"
-                  },
-                  "detallesOrdenProductos": {
-                    "$ref": "#/components/schemas/detalleOrdenProductos"
                   }
                 }
               }
@@ -61,12 +58,6 @@
                         "type": "array",
                         "items": {
                           "$ref": "#/components/schemas/ordenProductoCreated"
-                        }
-                      },
-                      "detallesOrdenProductos": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/detallesOrdenProductos"
                         }
                       }
                     }
@@ -92,7 +83,7 @@
         }
       }
     },
-    "/api/v1/orden_productos/{id}": {
+    "/orden_productos/{id}": {
       "get": {
         "description": "Obtener una orden de producto por id",
         "tags": ["Ordenes de Productos"],
@@ -124,12 +115,6 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ordenProductoCreated"
-                      }
-                    },
-                    "detallesOrdenProductos": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/detallesOrdenProductos"
                       }
                     }
                   }
