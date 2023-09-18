@@ -1,13 +1,14 @@
 import { prisma } from '../../../database.js';
 import { fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
     const { id } = params;
-    const result = await prisma.empresa.findUnique({
+    const result = await prisma.usuario.findUnique({
       where: {
-        numero_documento_empresa: id,
+        id,
       },
     });
 
@@ -16,7 +17,6 @@ export const id = async (req, res, next) => {
     } else {
       next({ message: 'Usuario invalido', status: 400 });
     }
-
     next();
   } catch (error) {
     next(error);
@@ -135,12 +135,12 @@ export const update = async (req, res, next) => {
   }
 };
 
-export const readById = async (req, res, next) => {
+export const userById = async (req, res, next) => {
   const { result } = req;
   try {
     const user = await prisma.usuario.findUnique({
       where: {
-        id: result.id_usuario,
+        id: result.id,
       },
       include: {
         cliente: true,
@@ -163,6 +163,191 @@ export const readById = async (req, res, next) => {
           id_usuario: undefined,
         },
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const all = async (req, res, next) => {
+  const { query, decoded } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+  const { userType } = decoded;
+
+  if (userType !== 'Administrador')
+    return next({ message: 'Prohibido', status: 403 });
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.usuario.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        select: {
+          id: true,
+          correo: true,
+          tipo_usuario: true,
+          estatus: true,
+          url_foto: true,
+          cliente: {
+            select: {
+              nombre_completo: true,
+              numero_documento: true,
+            },
+          },
+          empresa: {
+            select: {
+              razon_social: true,
+              numero_documento_empresa: true,
+            },
+          },
+        },
+      }),
+      prisma.usuario.count(),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const allByType = async (req, res, next) => {
+  const { query, decoded, params } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+  const { userType } = decoded;
+  const { tipo } = params;
+
+  if (userType !== 'Administrador')
+    return next({ message: 'Prohibido', status: 403 });
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.usuario.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        where: { tipo_usuario: tipo },
+        select: {
+          id: true,
+          correo: true,
+          tipo_usuario: true,
+          estatus: true,
+          url_foto: true,
+          cliente: {
+            select: {
+              nombre_completo: true,
+              numero_documento: true,
+            },
+          },
+          empresa: {
+            select: {
+              razon_social: true,
+              numero_documento_empresa: true,
+            },
+          },
+        },
+      }),
+      tipo === 'Cliente'
+        ? prisma.cliente.count()
+        : tipo === 'Empresa'
+        ? prisma.empresa.count()
+        : prisma.usuario.count({
+            where: {
+              tipo_usuario: 'Administrador',
+            },
+          }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateById = async (req, res, next) => {
+  const { body = {}, decoded = {}, result = {} } = req;
+  const { userType } = decoded;
+  const { id } = result;
+
+  if (userType !== 'Administrador')
+    return next({ message: 'Prohibido', status: 403 });
+
+  try {
+    const { userData = null, userTypeData = null } = body;
+
+    if (!userData && !userTypeData)
+      return next({ message: 'Nada que actualizar', status: 400 });
+
+    if (userData) {
+      const result = await prisma.usuario.update({
+        where: {
+          id,
+        },
+        data: {
+          ...userData,
+          fecha_actualizacion: new Date().toISOString(),
+        },
+      });
+      req.user = result;
+    }
+
+    if (result.tipo_usuario === 'Cliente' && userTypeData) {
+      const result = await prisma.cliente.update({
+        where: {
+          id_usuario: id,
+        },
+        data: {
+          ...userTypeData,
+        },
+      });
+      req.typeData = result;
+    }
+
+    if (result.tipo_usuario === 'Empresa' && userTypeData) {
+      const result = await prisma.empresa.update({
+        where: {
+          id_usuario: id,
+        },
+        data: {
+          ...userTypeData,
+        },
+      });
+      req.typeData = result;
+    }
+    res.json({
+      user: { ...req.user },
+      typeData: { ...req.typeData },
     });
   } catch (error) {
     next(error);
