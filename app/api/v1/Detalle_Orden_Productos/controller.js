@@ -1,7 +1,7 @@
 import { prisma } from "../../../database.js";
 import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
-
+/*
 export const create = async (req, res, next) => {
   const { body = {} } = req;
 
@@ -17,7 +17,7 @@ export const create = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
 
 export const all = async (req, res, next) => {
   const { query } = req;
@@ -92,42 +92,4 @@ export const read = async (req, res, next) => {
   res.json({
     data: req.result,
   });
-};
-
-export const update = async (req, res, next) => {
-  const { body = {}, params = {} } = req;
-  const { id } = params;
-
-  try {
-    const result = await prisma.detalle_Orden_Productos.update({
-      where: {
-        id,
-      },
-      data: {
-        ...body,
-      },
-    });
-
-    res.json({
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const remove = async (req, res) => {
-  const { params = {} } = req;
-  const { id } = params;
-
-  try {
-    await prisma.detalle_Orden_Productos.delete({
-      where: { id },
-    });
-
-    res.status(204);
-    res.end();
-  } catch (error) {
-    next(error);
-  }
 };

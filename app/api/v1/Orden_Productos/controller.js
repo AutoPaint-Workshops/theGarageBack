@@ -3,18 +3,45 @@ import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 
 export const create = async (req, res, next) => {
-  const { body = {} } = req;
-
+  const { body = {}, decoded } = req;
+  const { ordenProductos, detallesOrdenProductos } = body;
+  const { idType } = decoded;
+  let result;
+  const detallesImprmir = [];
+  ordenProductos.id_cliente = idType;
   try {
-    const result = await prisma.orden_Productos.create({
-      data: body,
+    await prisma.$transaction(async (transaction) => {
+      // Inserta la factura
+      result = await transaction.orden_Productos.create({
+        data: ordenProductos,
+      });
+
+      // Inserta múltiples detalles de factura
+
+      await Promise.all(
+        detallesOrdenProductos.map(async (detalle) => {
+          const resultDetalle =
+            await transaction.detalle_Orden_Productos.create({
+              data: {
+                id_orden_productos: result.id,
+                ...detalle,
+              },
+            });
+
+          detallesImprmir.push(resultDetalle);
+        })
+      );
     });
 
     res.status(201);
     res.json({
-      data: result,
+      data: {
+        orden: result,
+        detalle: detallesImprmir,
+      },
     });
   } catch (error) {
+    console.error("Error en la transacción:", error);
     next(error);
   }
 };
@@ -114,7 +141,7 @@ export const update = async (req, res, next) => {
     next(error);
   }
 };
-
+/*
 export const remove = async (req, res) => {
   const { params = {} } = req;
   const { id } = params;
@@ -129,4 +156,4 @@ export const remove = async (req, res) => {
   } catch (error) {
     next(error);
   }
-};
+};*/
