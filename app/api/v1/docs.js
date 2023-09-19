@@ -2,13 +2,9 @@ import merge from "lodash/merge.js";
 import productos from "./productos/docs.json" assert { type: "json" };
 import valoraciones from "./valoraciones/docs.json" assert { type: "json" };
 import autenticacion from "./auth/docs.json" assert { type: "json" };
-<<<<<<< HEAD
 import ordenProducto from "./Orden_Productos/docs.json" assert { type: "json" };
 import perfil from "./perfil/docs.json" assert { type: "json" };
 //import ordenServicio from "./Orden_Servicios/docs.json" assert { type: "json" };
-=======
-import perfil from "./perfil/docs.json" assert { type: "json" };
->>>>>>> fe00277 (refactor)
 import servicios from "./servicios/docs.json" assert { type: "json" };
 
 export const swaggerDefinition = merge(
@@ -33,12 +29,6 @@ export const swaggerDefinition = merge(
       {
         name: "Perfil",
         description: "Endpoints para consulta de perfil y actualizaciones",
-<<<<<<< HEAD
-
-        name: "Autenticación",
-        description: "Endpoints para registro e inicio de sesión",
-=======
->>>>>>> fe00277 (refactor)
       },
 
       {
