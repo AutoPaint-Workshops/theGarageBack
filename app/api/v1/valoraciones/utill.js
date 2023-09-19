@@ -8,12 +8,14 @@ export const verificarProductoOservicioEnDetalleOrden = async (
 ) => {
   const { decoded = {}, params } = req;
   const { idType: id_cliente } = decoded;
-  const { productId: id_producto } = params;
+  const { productId: id_producto, serviceId: id_servicio } = params;
+
+  console.log(id_cliente, id_producto, id_servicio);
 
   try {
-    const isProductInOrder = await prisma.detalle_orden_productos.findFirst({
+    const isProductInOrder = await prisma.detalle_Orden_Productos.findFirst({
       where: {
-        id_orden_productos: {
+        orden_productos: {
           cliente: {
             id: id_cliente,
           },
@@ -22,9 +24,9 @@ export const verificarProductoOservicioEnDetalleOrden = async (
       },
     });
 
-    const isServiceInOrder = await prisma.detalle_orden_servicios.findFirst({
+    const isServiceInOrder = await prisma.detalle_Orden_Servicio.findFirst({
       where: {
-        id_orden_servicios: {
+        orden_servicios: {
           cliente: {
             id: id_cliente,
           },
@@ -35,7 +37,8 @@ export const verificarProductoOservicioEnDetalleOrden = async (
 
     if (!isProductInOrder && !isServiceInOrder) {
       return res.status(404).json({
-        error: "No esta autorizado para realizar esta accion",
+        error:
+          "No esta autorizado para realizar esta accion, solo puede valorar productos o servicios que haya comprado ",
       });
     }
 
