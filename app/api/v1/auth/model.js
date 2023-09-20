@@ -52,12 +52,10 @@ const RecoverySchema = z.object({
 
 const UpdateSchema = z.object({
   contrasena: z.string().min(8).max(16),
-  codigo: z.string().length(6),
 });
 
 const SignUpClientSchema = UserSchema.merge(ClientSchema);
 const SignUpCompanySchema = UserSchema.merge(CompanySchema);
-const PasswordUpdateSchema = RecoverySchema.merge(UpdateSchema);
 
 export const validateCreate = async (data, tipoUsuario) => {
   if (tipoUsuario === 'cliente') {
@@ -78,7 +76,7 @@ export const validatePasswordRecovery = async (data) => {
 };
 
 export const validatePasswordUpdate = async (data) => {
-  return PasswordUpdateSchema.safeParseAsync(data);
+  return UpdateSchema.safeParseAsync(data);
 };
 
 export const clientFields = [...Object.keys(SignUpClientSchema.shape)];

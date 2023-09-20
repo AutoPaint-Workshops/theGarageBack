@@ -32,24 +32,79 @@ export const tipo = async (req, res, next) => {
   }
 };
 
-export const authEmail = (req, res, next) => {
+export const authEmail = async (req, res, next) => {
   const { params = {} } = req;
   const { token } = params;
-  const result = verifyToken(token);
+  const decoded = verifyToken(token);
 
-  if (!result) {
+  if (!decoded) {
     return next({
       message: 'Prohibido',
       status: 400,
     });
   }
 
-  // TODO: CAMBIAR EL ESTATUS A ACTIVO DE CLIENTES Y A VERIFICANDO EMPRESAS
+  const { correo, tipoUsuario } = decoded;
 
-  res.status(201);
-  res.json({
-    message: 'Autenticacion correcta',
-  });
+  const estatus = isActive(tipoUsuario);
+
+  try {
+    await prisma.usuario.update({
+      where: {
+        correo,
+      },
+      data: {
+        estatus,
+        fecha_actualizacion: new Date().toISOString(),
+      },
+    });
+
+    res.status(201);
+    res.json({
+      message: 'Autenticacion correcta',
+    });
+  } catch (error) {
+    next({
+      message: 'No se pudo autenticar la cuenta',
+      status: 400,
+    });
+  }
+};
+
+export const resendEmail = async (req, res, next) => {
+  const { body } = req;
+  const { correo } = body;
+
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        correo,
+      },
+    });
+
+    if (!user) {
+      return next({
+        message: 'El email no se encuentra registrado',
+        status: 400,
+      });
+    }
+
+    const { tipo_usuario: tipoUsuario } = user;
+    const token = signToken({ correo, tipoUsuario });
+
+    await transporter.sendMail({
+      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+      to: correo,
+      subject: 'Reenvío de codigo de autenticación',
+      text: 'Tu usuario se ha creado satisfactoriamente',
+      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
+    });
+
+    res.status(200);
+    res.json({
+      message: 'Se ha enviado el mensaje de autenticación a tu correo',
+    });
+  } catch (error) {}
 };
 
 export const signup = async (req, res, next) => {
@@ -66,7 +121,6 @@ export const signup = async (req, res, next) => {
 
     const password = await encryptPassword(data.userData.contrasena);
     const foto = urlFoto(userData);
-    // const estatus = isActive(tipo);
 
     const userResult = await prisma.usuario.create({
       data: {
@@ -77,15 +131,15 @@ export const signup = async (req, res, next) => {
       },
     });
 
-    const { correo, id: userID } = userResult;
-    const token = signToken({ correo });
+    const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
+    const token = signToken({ correo, tipoUsuario });
 
     await transporter.sendMail({
       from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
       to: correo,
-      subject: 'Codigo de inicio de sesión',
+      subject: 'Codigo de autenticación',
       text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavot ingresa al siguiente enlace ${process.env.API_URL}/confirmacion/${token} </p>`,
+      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
     });
 
     if (tipo === 'cliente') {
@@ -241,6 +295,18 @@ export const passwordRecovery = async (req, res, next) => {
         status: 200,
       });
     }
+
+    const { tipo_usuario: tipoUsuario } = user;
+    const token = signToken({ correo, tipoUsuario });
+
+    await transporter.sendMail({
+      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+      to: correo,
+      subject: 'Recuperación de contraseña',
+      text: 'Recuperación de contraseña',
+      html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/recuperarcontrasena/${token} </p>`,
+    });
+
     res.json({
       message:
         'Si su correo se encuentra registrado, recibira un correo con un enlace para continuar',
@@ -252,36 +318,46 @@ export const passwordRecovery = async (req, res, next) => {
 };
 
 export const updatePassword = async (req, res, next) => {
-  const { body = {} } = req;
+  const { body = {}, params = {} } = req;
+  const { token } = params;
+  const decoded = verifyToken(token);
+  const { correo } = decoded;
+
+  console.log(correo, decoded);
+
+  if (!decoded) {
+    return next({
+      message: 'Prohibido',
+      status: 403,
+    });
+  }
+
   try {
     const { success, data, error } = await validatePasswordUpdate(body);
+
     if (!success)
       return next({
         error,
       });
 
-    const { correo, contrasena, codigo } = data;
-
-    // // Espacio para la verificacion del código
-    if (!codigo) {
-      return next({
-        message: 'Código invalido',
-        status: 401,
+    try {
+      const password = await encryptPassword(data.contrasena);
+      await prisma.usuario.update({
+        where: {
+          correo,
+        },
+        data: {
+          contrasena: password,
+          fecha_actualizacion: new Date().toISOString(),
+        },
       });
+      res.json({
+        message: 'Confraseña actualizada correctamente',
+        status: 200,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const user = await prisma.usuario.update({
-      where: {
-        correo,
-      },
-      data: {
-        contrasena,
-        fecha_actualizacion: new Date().toISOString(),
-      },
-    });
-    res.json({
-      data: user,
-    });
   } catch (error) {
     next(error);
   }
