@@ -34,6 +34,15 @@ export const auth = (req, res, next) => {
   });
 };
 
+export const verifyToken = (payload) => {
+  return jwt.verify(payload, secret, function (err, decoded) {
+    if (err) {
+      return false;
+    }
+    return decoded;
+  });
+};
+
 export const owner = (req, res, next) => {
   const { decoded = {}, data = {} } = req;
   const { idType: ownerId } = decoded;
