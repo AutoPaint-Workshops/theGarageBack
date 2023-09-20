@@ -14,6 +14,9 @@ export const router = Router();
  */
 
 router.route('/signin').post(controller.signin);
+router.route('/confirmacion/:token').post(controller.authEmail);
+
+// TODO: AGREGAR RUTA PARA REENVIAR EMAIL
 
 router
   .route('/recuperarcontrasena')

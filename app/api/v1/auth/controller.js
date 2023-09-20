@@ -1,5 +1,6 @@
 import { prisma } from '../../../database.js';
-import { signToken } from '../auth.js';
+import { signToken, verifyToken } from '../auth.js';
+import { transporter } from '../mailer.js';
 import {
   validateCreate,
   validatePasswordRecovery,
@@ -31,6 +32,26 @@ export const tipo = async (req, res, next) => {
   }
 };
 
+export const authEmail = (req, res, next) => {
+  const { params = {} } = req;
+  const { token } = params;
+  const result = verifyToken(token);
+
+  if (!result) {
+    return next({
+      message: 'Prohibido',
+      status: 400,
+    });
+  }
+
+  // TODO: CAMBIAR EL ESTATUS A ACTIVO DE CLIENTES Y A VERIFICANDO EMPRESAS
+
+  res.status(201);
+  res.json({
+    message: 'Autenticacion correcta',
+  });
+};
+
 export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
   try {
@@ -45,18 +66,27 @@ export const signup = async (req, res, next) => {
 
     const password = await encryptPassword(data.userData.contrasena);
     const foto = urlFoto(userData);
-    const estatus = isActive(tipo);
+    // const estatus = isActive(tipo);
 
     const userResult = await prisma.usuario.create({
       data: {
         ...userData,
         url_foto: foto,
-        estatus: estatus,
+        estatus: 'Confirmacion',
         contrasena: password,
       },
     });
 
-    const userID = userResult.id;
+    const { correo, id: userID } = userResult;
+    const token = signToken({ correo });
+
+    await transporter.sendMail({
+      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+      to: correo,
+      subject: 'Codigo de inicio de sesión',
+      text: 'Tu usuario se ha creado satisfactoriamente',
+      html: `<p>Para confirmar tu correo porfavot ingresa al siguiente enlace ${process.env.API_URL}/confirmacion/${token} </p>`,
+    });
 
     if (tipo === 'cliente') {
       await prisma.cliente.create({
@@ -66,7 +96,8 @@ export const signup = async (req, res, next) => {
         },
       });
       res.json({
-        message: 'Usuario creado satisfactoriamente',
+        message:
+          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
       });
     }
 
@@ -79,13 +110,14 @@ export const signup = async (req, res, next) => {
       });
       res.json({
         message:
-          'Solicitud de creación recibida, le llegará un correo en menos de 24 horas con la respuesta',
+          'Solicitud de creación recibida, revisa tu correo para confirmar tu cuenta',
       });
     }
 
     if (tipo === 'administrador') {
       res.json({
-        message: 'Usuario creado satisfactoriamente',
+        message:
+          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
       });
     }
     res.status(201);
