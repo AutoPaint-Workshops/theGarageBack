@@ -109,8 +109,12 @@ export const resendEmail = async (req, res, next) => {
 
 export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
+  const { data } = body;
+
+  const signUpBody = JSON.parse(data);
+
   try {
-    const { success, data, error } = await validateCreate(body, tipo);
+    const { success, data, error } = await validateCreate(signUpBody, tipo);
     if (!success) {
       return next({
         error,
@@ -118,9 +122,8 @@ export const signup = async (req, res, next) => {
     }
 
     const { userData, userTypeData } = data;
-
     const password = await encryptPassword(data.userData.contrasena);
-    const foto = urlFoto(userData);
+    const foto = await urlFoto(req.files);
 
     const userResult = await prisma.usuario.create({
       data: {
@@ -322,8 +325,6 @@ export const updatePassword = async (req, res, next) => {
   const { token } = params;
   const decoded = verifyToken(token);
   const { correo } = decoded;
-
-  console.log(correo, decoded);
 
   if (!decoded) {
     return next({

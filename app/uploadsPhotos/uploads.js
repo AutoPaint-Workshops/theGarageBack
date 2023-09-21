@@ -1,8 +1,8 @@
-import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import e from "express";
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import e from 'express';
 
-export const uploads = multer({ dest: "./temp" });
+export const uploads = multer({ dest: './temp' });
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -10,10 +10,10 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-export const uploadFiles = async (file) => {
+export const uploadFiles = async (file, folder = 'products') => {
   try {
     const result = await cloudinary.uploader.upload(file, {
-      folder: "products",
+      folder,
       width: 400,
       height: 400,
       use_filename: true,
