@@ -1,4 +1,6 @@
 import { hash, compare } from 'bcrypt';
+import { uploadFiles } from '../../../uploadsPhotos/uploads.js';
+import fs from 'fs';
 
 export const ifType = (tipo) => {
   if (tipo !== 'cliente' && tipo !== 'empresa' && tipo !== 'administrador')
@@ -9,8 +11,24 @@ export const ifType = (tipo) => {
 export const isActive = (tipo) =>
   tipo === 'empresa' ? 'Verificando' : 'Activo';
 
-export const urlFoto = (userData) =>
-  userData.url_foto ? userData.url_foto : 'www.urlfotodeprueba.png';
+export const urlFoto = async (files) => {
+  if (!files) {
+    return 'https://placehold.co/400x400';
+  }
+
+  const promises = files.map((file) =>
+    uploadFiles(file.path, 'profile_photos'),
+  );
+  const resultados = await Promise.all(promises);
+  const fotosCloudinary = [];
+  for (let i = 0; i < files.length; i++) {
+    fotosCloudinary.push({ url_foto: resultados[i].url });
+  }
+
+  files.forEach((file) => fs.unlinkSync(file.path));
+
+  return fotosCloudinary[0].url_foto;
+};
 
 export const encryptPassword = (password) => {
   return hash(password, 10);

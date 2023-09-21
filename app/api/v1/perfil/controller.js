@@ -1,6 +1,7 @@
 import { prisma } from '../../../database.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { urlFoto } from '../auth/utils.js';
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
@@ -82,15 +83,22 @@ export const read = async (req, res, next) => {
 
 export const update = async (req, res, next) => {
   const { body = {}, decoded = {} } = req;
+  const { data } = body;
+  const updateBody = JSON.parse(data);
   const { id, idType, userType } = decoded;
 
   try {
-    const { userData = null, userTypeData = null } = body;
+    const { userData = null, userTypeData = null } = updateBody;
 
     if (!userData && !userTypeData)
       return next({ message: 'Nada que actualizar', status: 400 });
 
     if (userData) {
+      if (req.files.length > 0) {
+        const foto = await urlFoto(req.files);
+        userData.url_foto = foto;
+      }
+
       const result = await prisma.usuario.update({
         where: {
           id,

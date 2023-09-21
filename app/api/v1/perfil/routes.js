@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as controller from './controller.js';
 import { auth } from '../auth.js';
+import { uploads } from '../../../uploadsPhotos/uploads.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -16,8 +17,8 @@ export const router = Router();
 router
   .route('/')
   .get(auth, controller.read)
-  .put(auth, controller.update)
-  .patch(auth, controller.update);
+  .put(auth, uploads.array('images'), controller.update)
+  .patch(auth, uploads.array('images'), controller.update);
 
 router.route('/usuarios').get(auth, controller.all);
 router.route('/usuarios/:tipo').get(auth, controller.allByType);
