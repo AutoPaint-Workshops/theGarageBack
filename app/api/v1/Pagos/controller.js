@@ -1,6 +1,7 @@
-import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { prisma } from '../../../database.js';
+import { fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { paymentById } from '../mercadopago.config.js';
 
 export const create = async (req, res, next) => {
   const { body = {} } = req;
@@ -113,4 +114,23 @@ export const remove = async (req, res) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const success = async (req, res) => {
+  console.log(req);
+  res.json({
+    message: 'webhook',
+  });
+};
+
+export const receiveWebhook = async (req, res) => {
+  const payment = req.query;
+
+  if (payment.type === 'payment') {
+    const data = await paymentById(payment['data.id']);
+    console.log(data);
+    res.status(200);
+  }
+
+  res.status(200);
 };

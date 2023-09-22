@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { auth } from "../auth.js";
+import { Router } from 'express';
+import { auth } from '../auth.js';
 
-import * as controller from "./controller.js";
+import * as controller from './controller.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -14,12 +14,14 @@ export const router = Router();
 
  */
 
-router.route("/").post(auth, controller.create).get(controller.all);
+router.route('/').post(auth, controller.create).get(controller.all);
 
-router.param("id", controller.id);
+router.param('id', controller.id);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(controller.read)
   .put(controller.update)
   .patch(controller.update);
+
+router.route('/:id/crear_orden').post(auth, controller.createOrder);
