@@ -1,6 +1,6 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import * as controller from "./controller.js";
+import * as controller from './controller.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -13,12 +13,16 @@ export const router = Router();
  * /api/v1/pagos/:id DELETE  - DELETE
  */
 
-router.route("/").post(controller.create).get(controller.all);
+router.route('/').post(controller.create).get(controller.all);
+router.route('/compra_exitosa').get(controller.success);
+router.route('/compra_fallida').get(controller.success);
+router.route('/compra_pendiente').get(controller.success);
+router.route('/mercadopago_webhook').post(controller.receiveWebhook);
 
-router.param("id", controller.id);
+router.param('id', controller.id);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(controller.read)
   .put(controller.update)
   .patch(controller.update)

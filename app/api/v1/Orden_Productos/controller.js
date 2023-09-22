@@ -1,6 +1,7 @@
-import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { prisma } from '../../../database.js';
+import { fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { mercadopagoCreateOrder } from '../mercadopago.config.js';
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
@@ -29,7 +30,7 @@ export const create = async (req, res, next) => {
             });
 
           detallesImprmir.push(resultDetalle);
-        })
+        }),
       );
     });
 
@@ -41,7 +42,7 @@ export const create = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Error en la transacción:", error);
+    console.error('Error en la transacción:', error);
     next(error);
   }
 };
@@ -104,6 +105,9 @@ export const id = async (req, res, next) => {
       where: {
         id: params.id,
       },
+      include: {
+        detalle_orden_productos: true,
+      },
     });
 
     req.result = result;
@@ -157,3 +161,42 @@ export const remove = async (req, res) => {
     next(error);
   }
 };*/
+
+export const createOrder = async (req, res, next) => {
+  const elementos = req.result.detalle_orden_productos;
+  try {
+    const items = elementos.map(async (elemento) => {
+      const result = await prisma.producto.findUnique({
+        where: {
+          id: elemento.id_producto,
+        },
+      });
+
+      const photo = await prisma.foto.findFirst({
+        where: {
+          id_producto: elemento.id_producto,
+        },
+      });
+
+      const item = {
+        id: result.id,
+        title: result.nombre,
+        description: result.descripcion,
+        picture_url: photo.url_foto,
+        unit_price: result.precio,
+        currency_id: 'COP',
+        quantity: elemento.cantidad,
+      };
+
+      return item;
+    });
+
+    const resultItems = await Promise.all(items);
+
+    const orden = await mercadopagoCreateOrder(resultItems);
+
+    res.json(orden);
+  } catch (error) {
+    next(error);
+  }
+};
