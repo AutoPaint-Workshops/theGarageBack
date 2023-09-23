@@ -132,6 +132,11 @@ export const search = async (req, res, next) => {
               nombre_categoria: true,
             },
           },
+          empresa: {
+            select: {
+              razon_social: true,
+            },
+          },
         },
         where: {
           OR: keywords.map((keyword) => ({
