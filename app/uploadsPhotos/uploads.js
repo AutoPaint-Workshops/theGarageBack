@@ -10,15 +10,30 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-export const uploadFiles = async (file, folder = 'products') => {
+export const uploadFiles = async (
+  file,
+  folder = 'products',
+  type = 'photo',
+) => {
+  const photoConfig = {
+    folder,
+    width: 400,
+    height: 400,
+    use_filename: true,
+    unique_filename: false,
+  };
+
+  const pdfConfig = {
+    folder,
+    use_filename: true,
+    unique_filename: false,
+    resource_type: 'auto',
+  };
+
+  const config = type === 'photo' ? photoConfig : pdfConfig;
+
   try {
-    const result = await cloudinary.uploader.upload(file, {
-      folder,
-      width: 400,
-      height: 400,
-      use_filename: true,
-      unique_filename: false,
-    });
+    const result = await cloudinary.uploader.upload(file, config);
     return result;
   } catch (error) {
     console.log(error);

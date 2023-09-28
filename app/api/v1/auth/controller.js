@@ -13,6 +13,7 @@ import {
   urlFoto,
   encryptPassword,
   verifyPassword,
+  urlDocument,
 } from './utils.js';
 
 export const tipo = async (req, res, next) => {
@@ -111,6 +112,13 @@ export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
   const { data } = body;
 
+  const photoReq = req.files
+    ? req.files.filter((file) => file.mimetype === 'image/jpeg')
+    : [];
+  const pdfReq = req.files
+    ? req.files.filter((file) => file.mimetype === 'application/pdf')
+    : [];
+
   const signUpBody = JSON.parse(data);
 
   try {
@@ -123,7 +131,8 @@ export const signup = async (req, res, next) => {
 
     const { userData, userTypeData } = data;
     const password = await encryptPassword(data.userData.contrasena);
-    const foto = await urlFoto(req.files);
+    const foto = await urlFoto(photoReq);
+    const camaraComercio = await urlDocument(pdfReq);
 
     const userResult = await prisma.usuario.create({
       data: {
@@ -142,7 +151,7 @@ export const signup = async (req, res, next) => {
       to: correo,
       subject: 'Codigo de autenticación',
       text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
+      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/confirmacion/${token} </p>`,
     });
 
     if (tipo === 'cliente') {
@@ -163,6 +172,7 @@ export const signup = async (req, res, next) => {
         data: {
           id_usuario: userID,
           ...userTypeData,
+          camara_comercio: camaraComercio,
         },
       });
       res.json({
