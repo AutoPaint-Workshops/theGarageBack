@@ -36,8 +36,8 @@ router.param("id", controller.id);
 
 router
   .route("/:id")
-  .get(controller.read)
-  // .get(auth, controller.read)
+  // .get(controller.read)
+  .get(auth, controller.read)
   .put(auth, owner, uploads.array("images"), controller.update)
   .patch(auth, owner, uploads.array("images"), controller.update)
   .delete(auth, owner, controller.remove);
