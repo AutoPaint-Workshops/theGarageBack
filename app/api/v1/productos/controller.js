@@ -486,7 +486,6 @@ export const filter = async (req, res, next) => {
       };
     }
     if (almacenes.length > 0) {
-      console.log(almacenes);
       where.empresa = {
         razon_social: {
           in: almacenes,
