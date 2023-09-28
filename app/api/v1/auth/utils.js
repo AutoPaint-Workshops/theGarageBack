@@ -12,7 +12,7 @@ export const isActive = (tipo) =>
   tipo === 'empresa' ? 'Verificando' : 'Activo';
 
 export const urlFoto = async (files) => {
-  if (!files) {
+  if (files === 0) {
     return 'https://placehold.co/400x400';
   }
 
@@ -28,6 +28,25 @@ export const urlFoto = async (files) => {
   files.forEach((file) => fs.unlinkSync(file.path));
 
   return fotosCloudinary[0].url_foto;
+};
+
+export const urlDocument = async (files) => {
+  if (files === 0) {
+    return 'https://placehold.co/400x400';
+  }
+
+  const promises = files.map((file) =>
+    uploadFiles(file.path, 'c_commerce_documents', 'pdf'),
+  );
+  const resultados = await Promise.all(promises);
+  const documentsCloudinary = [];
+  for (let i = 0; i < files.length; i++) {
+    documentsCloudinary.push({ url_document: resultados[i].url });
+  }
+
+  files.forEach((file) => fs.unlinkSync(file.path));
+
+  return documentsCloudinary[0].url_document;
 };
 
 export const encryptPassword = (password) => {
