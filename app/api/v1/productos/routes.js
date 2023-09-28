@@ -22,7 +22,8 @@ export const router = Router();
 
 router
   .route("/")
-  .post(auth, uploads.array("images"), controller.create)
+  // .post(auth, uploads.array("images"), controller.create)
+  .post(uploads.array("images"), controller.create)
   .get(controller.all);
 
 router.route("/filter").get(controller.filter);
@@ -35,6 +36,7 @@ router.param("id", controller.id);
 
 router
   .route("/:id")
+  // .get(controller.read)
   .get(auth, controller.read)
   .put(auth, owner, uploads.array("images"), controller.update)
   .patch(auth, owner, uploads.array("images"), controller.update)

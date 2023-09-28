@@ -16,11 +16,11 @@ export const create = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType, idType: id_empresa } = decoded;
 
-  if (userType !== "Empresa") {
-    return res.status(401).json({
-      error: "No autorizado",
-    });
-  }
+  // if (userType !== "Empresa") {
+  //   return res.status(401).json({
+  //     error: "No autorizado",
+  //   });
+  // }
 
   try {
     const { success, data, error } = await ProductosSchema.safeParseAsync({
@@ -68,7 +68,7 @@ export const create = async (req, res, next) => {
         ...data,
         fotos: { create: fotosCloudinary },
         // eslint-disable-next-line camelcase
-        id_empresa,
+        id_empresa: "40b0ea74-25e6-4566-8017-49a591c5b843",
         id_categoria: Idcategoria,
       },
 
@@ -130,6 +130,11 @@ export const search = async (req, res, next) => {
           categoria: {
             select: {
               nombre_categoria: true,
+            },
+          },
+          empresa: {
+            select: {
+              razon_social: true,
             },
           },
         },
@@ -297,6 +302,11 @@ export const id = async (req, res, next) => {
         },
         fotos: true,
         valoraciones: true,
+        empresa: {
+          select: {
+            razon_social: true,
+          },
+        },
       },
     });
 
@@ -476,7 +486,6 @@ export const filter = async (req, res, next) => {
       };
     }
     if (almacenes.length > 0) {
-      console.log(almacenes);
       where.empresa = {
         razon_social: {
           in: almacenes,

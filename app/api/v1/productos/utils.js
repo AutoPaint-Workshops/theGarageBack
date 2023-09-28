@@ -5,10 +5,12 @@ export const filtrarProductosPorCalificacion = (result, filterCalificacion) => {
       return false;
     }
 
-    const sumaCalificaciones = valoraciones.reduce(
-      (sum, val) => sum + val.calificacion,
-      0
-    );
+    let sumaCalificaciones = 0;
+
+    valoraciones.forEach((valoracion) => {
+      sumaCalificaciones += valoracion.calificacion;
+    });
+
     const calificacionPromedio = Math.round(
       sumaCalificaciones / valoraciones.length
     );
