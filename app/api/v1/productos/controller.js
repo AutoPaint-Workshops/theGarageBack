@@ -16,6 +16,12 @@ export const create = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType, idType: id_empresa } = decoded;
 
+  if (userType !== "Empresa") {
+    return res.status(401).json({
+      error: "No autorizado",
+    });
+  }
+
   try {
     const { success, data, error } = await ProductosSchema.safeParseAsync({
       ...body,
