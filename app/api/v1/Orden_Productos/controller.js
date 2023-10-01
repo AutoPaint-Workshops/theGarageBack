@@ -1,8 +1,8 @@
-import { prisma } from '../../../database.js';
-import { fields } from './model.js';
-import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { mercadopagoCreateOrder } from '../mercadopago.config.js';
-
+import { prisma } from "../../../database.js";
+import { fields } from "./model.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { mercadopagoCreateOrder } from "../mercadopago.config.js";
+/*
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
   const { ordenProductos, detallesOrdenProductos } = body;
@@ -43,6 +43,96 @@ export const create = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error en la transacción:', error);
+    next(error);
+  }
+};*/
+
+export const create = async (req, res, next) => {
+  const { body = {}, decoded } = req;
+  const { ordenProductos, detallesOrdenProductos } = body;
+  const { idType } = decoded;
+  let result;
+  let reference;
+  const detallesImprmir = [];
+  ordenProductos.id_cliente = idType;
+  try {
+    await prisma.$transaction(async (transaction) => {
+      // Inserta la factura
+      result = await transaction.orden_Productos.create({
+        data: ordenProductos,
+      });
+      reference = result.id;
+      await Promise.all(
+        detallesOrdenProductos.map(async (detalle) => {
+          const resultDetalle =
+            await transaction.detalle_Orden_Productos.create({
+              data: {
+                id_orden_productos: result.id,
+                ...detalle,
+              },
+            });
+
+          detallesImprmir.push(resultDetalle);
+        })
+      );
+    });
+    const elementos = detallesOrdenProductos;
+    try {
+      const items = elementos.map(async (elemento) => {
+        const result = await prisma.producto.findUnique({
+          where: {
+            id: elemento.id_producto,
+          },
+        });
+        /*
+        const photo = await prisma.foto.findFirst({
+          where: {
+            id_producto: elemento.id_producto,
+          },
+        });*/
+
+        const item = {
+          id: result.id,
+          title: result.nombre,
+          description: result.descripcion,
+          // picture_url: photo.url_foto,
+          unit_price: result.precio,
+          currency_id: "COP",
+          quantity: elemento.cantidad,
+        };
+
+        return item;
+      });
+
+      const resultItems = await Promise.all(items);
+      // Si resultItems da error detener
+
+      const orden = await mercadopagoCreateOrder(resultItems, reference);
+
+      // res.json(orden.body.init_point);
+      try {
+        const resultPago = await prisma.Pagos.create({
+          data: {
+            id_cliente: idType,
+            id_orden_productos: reference,
+            url_pago: orden.body.init_point,
+            estado: "creado",
+          },
+        });
+        console.log(resultPago);
+      } catch (error) {
+        next(error);
+      }
+
+      res.json(orden);
+    } catch (error) {
+      // Borrar en cascada  los detalles de la orden
+
+      next(error);
+    }
+    res.status(201);
+  } catch (error) {
+    console.error("Error en la transacción:", error);
     next(error);
   }
 };
@@ -184,7 +274,7 @@ export const createOrder = async (req, res, next) => {
         description: result.descripcion,
         picture_url: photo.url_foto,
         unit_price: result.precio,
-        currency_id: 'COP',
+        currency_id: "COP",
         quantity: elemento.cantidad,
       };
 
