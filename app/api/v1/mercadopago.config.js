@@ -13,7 +13,7 @@ export const mercadopagoCreateOrder = async (items, reference) => {
       failure: `${process.env.API_URL}/v1/pagos/compra_fallida`,
       pending: `${process.env.API_URL}/v1/pagos/compra_pendiente`,
     },
-    notification_url: `https://d3c7-2800-e2-b680-1c03-ee87-e270-1da6-62c.ngrok.io/api/v1/pagos/mercadopago_webhook`,
+    notification_url: `https://8ce4-2800-e2-b680-1c03-ee87-e270-1da6-62c.ngrok.io/api/v1/pagos/mercadopago_webhook`,
   });
 
   return result;

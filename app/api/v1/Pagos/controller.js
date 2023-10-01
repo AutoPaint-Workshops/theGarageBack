@@ -129,30 +129,35 @@ export const receiveWebhook = async (req, res) => {
   if (payment.type === "payment") {
     const data = await paymentById(payment["data.id"]);
     const idOrden = data.body.external_reference;
-    console.log("El id de la orden en el Webhook", idOrden);
-    console.log("El estado de la orden", data.body.status);
-    if (data.body.status == "approved") {
+
+    if (data.body.status === "approved" && data.status === 200) {
       try {
-        const actualizar = await descargarProductos(idOrden);
+        await descargarProductos(idOrden);
         const result = await prisma.Pagos.update({
           where: {
             id_orden_productos: idOrden,
           },
           data: {
             estado: "approved",
-            id_pago_mp: data.body.id,
+            id_pago_mp: data.body.id.toString(),
             metodo_pago: data.body.payment_method.type,
           },
         });
-        console.log("actualizar", actualizar);
-        console.log("pago", result);
       } catch (error) {
-        next(error);
+        console.log(error);
       }
-    } else if (data.body.status == "rejected") {
+    } else if (data.body.status === "rejected") {
+      await prisma.Pagos.update({
+        where: {
+          id_orden_productos: idOrden,
+        },
+        data: {
+          estado: "rejected",
+        },
+      });
     }
 
-    console.log(data);
+    // console.log(data);
     res.status(200);
   }
 
@@ -160,33 +165,46 @@ export const receiveWebhook = async (req, res) => {
 };
 
 const descargarProductos = async (idOrden) => {
-  console.log("Logo entrar a descargarlos productos");
+  let resultCant = 0;
+  let resultado = 0;
   try {
-    const detalles = await prisma.detalle_Orden_Productos.findMany({
+    const estadoPago = await prisma.pagos.findUnique({
       where: {
         id_orden_productos: idOrden,
       },
+      select: {
+        estado: true,
+      },
     });
-    detalles.map(async (detalle) => {
-      resultCant = await prisma.producto.findUnique({
+    if (estadoPago.estado === "creado") {
+      const detalles = await prisma.detalle_Orden_Productos.findMany({
         where: {
-          id: detalle.id_producto,
-        },
-        select: {
-          cantidad_disponible: true,
+          id_orden_productos: idOrden,
         },
       });
-      resultado = await prisma.producto.update({
-        where: {
-          id: detalle.id_producto,
-        },
-        data: {
-          cantidad_disponible: resultCant - detalle.cantidad,
-        },
+      detalles.map(async (detalle) => {
+        resultCant = await prisma.Producto.findUnique({
+          where: {
+            id: detalle.id_producto,
+          },
+          select: {
+            cantidad_disponible: true,
+          },
+        });
+        const res = resultCant.cantidad_disponible - detalle.cantidad;
+        console.log("la pinche resta", res);
+        resultado = await prisma.Producto.update({
+          where: {
+            id: detalle.id_producto,
+          },
+          data: {
+            cantidad_disponible: res,
+          },
+        });
       });
-    });
+    }
   } catch (error) {
     console.error("Error en la transacción:", error);
-    next(error);
+    return error;
   }
 };
