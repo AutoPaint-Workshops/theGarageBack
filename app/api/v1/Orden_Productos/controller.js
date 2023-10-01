@@ -109,7 +109,6 @@ export const create = async (req, res, next) => {
 
       const orden = await mercadopagoCreateOrder(resultItems, reference);
 
-      // res.json(orden.body.init_point);
       try {
         const resultPago = await prisma.Pagos.create({
           data: {
@@ -124,7 +123,7 @@ export const create = async (req, res, next) => {
         next(error);
       }
 
-      res.json(orden);
+      res.json(orden.body.init_point);
     } catch (error) {
       // Borrar en cascada  los detalles de la orden
 
