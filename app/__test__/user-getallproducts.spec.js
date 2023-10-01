@@ -23,22 +23,26 @@ describe("GET /api/v1/productos", () => {
     });
 
     const formData = new FormData();
+    const data = {
+      userData: {
+        correo: "julioJaramillo8@gmail.com",
+        contrasena: "Contra123",
+        tipo_usuario: "Cliente",
+        url_foto: "https://fotocliente.png",
+        departamento: "Antioquia",
+        ciudad: "Medellín",
+        direccion: "dfgdfg",
+      },
+      userTypeData: {
+        nombre_completo: "dfgdf",
+        tipo_documento: "Cédula de Extranjería",
+        numero_documento: "32423423j4",
+        telefono: "23423423432",
+      },
+    };
 
-    formData.append("data[userData][correo]", "todoautos@gmail.com");
-    formData.append("data[userData][contrasena]", "Contra123");
-    formData.append("data[userData][tipo_usuario]", "Cliente");
-    formData.append("data[userData][url_foto]", "https://fotocliente.png");
-    formData.append("data[userData][departamento]", "Antioquia");
-    formData.append("data[userData][ciudad]", "Alejandría");
-    formData.append("data[userData][direccion]", "sdfsdfsdf");
-
-    formData.append("data[userTypeData][nombre_completo]", "sdfsdf");
-    formData.append(
-      "data[userTypeData][tipo_documento]",
-      "Cédula de Ciudadanía"
-    );
-    formData.append("data[userTypeData][numero_documento]", "1090396866");
-    formData.append("data[userTypeData][telefono]", "3208719438");
+    formData.append("data", JSON.stringify(data));
+    formData.append("images", "https://fotocliente.png");
 
     const response = await request(app)
       .post("/api/v1/auth/cliente/signup")
@@ -46,7 +50,7 @@ describe("GET /api/v1/productos", () => {
         "Content-Type",
         `multipart/form-data; boundary=${formData.getBoundary()}`
       )
-      .send(formData);
+      .send(formData.getBuffer());
     expect(response.status).toBe(201);
   });
 });
