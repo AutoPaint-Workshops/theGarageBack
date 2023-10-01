@@ -1,23 +1,23 @@
-import { hash, compare } from 'bcrypt';
-import { uploadFiles } from '../../../uploadsPhotos/uploads.js';
-import fs from 'fs';
+import { hash, compare } from "bcrypt";
+import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
+import fs from "fs";
 
 export const ifType = (tipo) => {
-  if (tipo !== 'cliente' && tipo !== 'empresa' && tipo !== 'administrador')
+  if (tipo !== "cliente" && tipo !== "empresa" && tipo !== "administrador")
     return true;
   return false;
 };
 
 export const isActive = (tipo) =>
-  tipo === 'empresa' ? 'Verificando' : 'Activo';
+  tipo === "empresa" ? "Verificando" : "Activo";
 
 export const urlFoto = async (files) => {
   if (files.length === 0) {
-    return 'https://placehold.co/400x400';
+    return "https://placehold.co/400x400";
   }
 
   const promises = files.map((file) =>
-    uploadFiles(file.path, 'profile_photos'),
+    uploadFiles(file.path, "profile_photos")
   );
   const resultados = await Promise.all(promises);
   const fotosCloudinary = [];
@@ -32,11 +32,11 @@ export const urlFoto = async (files) => {
 
 export const urlDocument = async (files) => {
   if (files.length === 0) {
-    return 'https://placehold.co/400x400';
+    return "https://placehold.co/400x400";
   }
 
   const promises = files.map((file) =>
-    uploadFiles(file.path, 'c_commerce_documents', 'pdf'),
+    uploadFiles(file.path, "c_commerce_documents", "pdf")
   );
   const resultados = await Promise.all(promises);
   const documentsCloudinary = [];
