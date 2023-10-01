@@ -56,6 +56,7 @@ const UpdateSchema = z.object({
 
 const SignUpClientSchema = UserSchema.merge(ClientSchema);
 const SignUpCompanySchema = UserSchema.merge(CompanySchema);
+const PasswordUpdateSchema = RecoverySchema.merge(UpdateSchema);
 
 export const validateCreate = async (data, tipoUsuario) => {
   if (tipoUsuario === 'cliente') {

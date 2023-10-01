@@ -80,6 +80,7 @@ export const resendEmail = async (req, res, next) => {
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
+        estatus: 'Confirmacion',
       },
     });
 
@@ -105,7 +106,9 @@ export const resendEmail = async (req, res, next) => {
     res.json({
       message: 'Se ha enviado el mensaje de autenticación a tu correo',
     });
-  } catch (error) {}
+  } catch (error) {
+    return next({ error });
+  }
 };
 
 export const signup = async (req, res, next) => {
@@ -151,7 +154,7 @@ export const signup = async (req, res, next) => {
       to: correo,
       subject: 'Codigo de autenticación',
       text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/confirmacion/${token} </p>`,
+      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
     });
 
     if (tipo === 'cliente') {
@@ -317,7 +320,7 @@ export const passwordRecovery = async (req, res, next) => {
       to: correo,
       subject: 'Recuperación de contraseña',
       text: 'Recuperación de contraseña',
-      html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/recuperarcontrasena/${token} </p>`,
+      html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/Recoverypassword/${token} </p>`,
     });
 
     res.json({
