@@ -31,7 +31,7 @@ export const urlFoto = async (files) => {
 };
 
 export const urlDocument = async (files) => {
-  if (files === 0) {
+  if (files.length === 0) {
     return 'https://placehold.co/400x400';
   }
 

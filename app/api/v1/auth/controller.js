@@ -80,6 +80,7 @@ export const resendEmail = async (req, res, next) => {
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
+        estatus: 'Confirmacion',
       },
     });
 
@@ -105,7 +106,9 @@ export const resendEmail = async (req, res, next) => {
     res.json({
       message: 'Se ha enviado el mensaje de autenticación a tu correo',
     });
-  } catch (error) {}
+  } catch (error) {
+    return next({ error });
+  }
 };
 
 export const signup = async (req, res, next) => {
