@@ -123,7 +123,7 @@ export const create = async (req, res, next) => {
         next(error);
       }
 
-      res.json(orden.body.init_point);
+      res.json({ paymentUrl: orden.body.init_point });
     } catch (error) {
       // Borrar en cascada  los detalles de la orden
 

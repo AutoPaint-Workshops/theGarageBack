@@ -9,11 +9,11 @@ export const mercadopagoCreateOrder = async (items, reference) => {
     items,
     external_reference: reference,
     back_urls: {
-      success: `${process.env.API_URL}/v1/pagos/compra_exitosa`,
-      failure: `${process.env.API_URL}/v1/pagos/compra_fallida`,
-      pending: `${process.env.API_URL}/v1/pagos/compra_pendiente`,
+      success: `${process.env.WEB_URL}/SuccessPurchase`,
+      failure: `${process.env.WEB_URL}/failurePurchase`,
+      pending: `${process.env.WEB_URL}/failurePurchase`,
     },
-    notification_url: `https://8ce4-2800-e2-b680-1c03-ee87-e270-1da6-62c.ngrok.io/api/v1/pagos/mercadopago_webhook`,
+    notification_url: `https://893a-2800-e2-b680-1c03-ee87-e270-1da6-62c.ngrok.io/api/v1/pagos/mercadopago_webhook`,
   });
 
   return result;
