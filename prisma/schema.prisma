@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                  String    @id @unique @default(uuid()) @db.Uuid
+  correo              String    @unique @db.VarChar(255)
+  contrasena          String    @db.VarChar(255)
+  tipo_usuario        String    @db.VarChar(50)
+  fecha_creacion      DateTime  @default(now())
+  fecha_actualizacion DateTime?
+  estatus             String    @db.VarChar(20)
+  url_foto            String?   @db.Text
+  departamento        String?   @db.VarChar(100)
+  ciudad              String?   @db.VarChar(100)
+  direccion           String?   @db.Text
+  cliente             Cliente?
+  empresa             Empresa?
+}
+
+model Cliente {
+  id               String            @id @default(uuid()) @db.Uuid
+  id_usuario       String            @unique @db.Uuid
+  nombre_completo  String?           @db.VarChar(255)
+  tipo_documento   String?           @db.VarChar(50)
+  numero_documento String?           @unique @db.VarChar(50)
+  telefono         String?           @db.VarChar(20)
+  usuario          Usuario           @relation(fields: [id_usuario], references: [id])
+  valoraciones     Valoracion[]
+  orden_Productos  Orden_Productos[]
+  orden_Servicios  Orden_Servicios[]
+  pagos            Pagos[]
+}
+
+model Empresa {
+  id                             String     @id @default(uuid()) @db.Uuid
+  id_usuario                     String?    @unique @db.Uuid
+  razon_social                   String?    @db.VarChar(255)
+  tipo_documento_empresa         String?    @db.VarChar(50)
+  numero_documento_empresa       String?    @unique @db.VarChar(50)
+  telefono                       String?    @db.VarChar(20)
+  sitio_web                      String?    @db.Text
+  camara_comercio                String?    @db.Text
+  representante_legal            String?    @db.VarChar(255)
+  tipo_documento_representante   String?    @db.VarChar(50)
+  numero_documento_representante String?    @unique @db.VarChar(50)
+  correo_representante           String?    @db.VarChar(255)
+  descripcion                    String?    @db.Text
+  usuario                        Usuario?   @relation(fields: [id_usuario], references: [id])
+  productos                      Producto[]
+  servicios                      Servicio[]
+}
+
+model Categoria {
+  id               String     @id @default(uuid()) @db.Uuid
+  nombre_categoria String     @db.VarChar(255)
+  productos        Producto[]
+  servicios        Servicio[]
+}
+
+model Producto {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  id_empresa               String                    @db.Uuid
+  id_categoria             String                    @db.Uuid
+  nombre                   String                    @db.VarChar(255)
+  descripcion              String?                   @db.Text
+  ficha_tecnica            String?                   @db.Text
+  precio                   Int
+  cantidad_disponible      Int
+  estatus                  Boolean
+  tipo_entrega             String                    @db.VarChar(50)
+  fecha_creacion           DateTime                  @default(now())
+  fecha_actualizacion      DateTime?
+  marca                    String?                   @db.VarChar(100)
+  impuestos                Decimal
+  empresa                  Empresa                   @relation(fields: [id_empresa], references: [id])
+  categoria                Categoria                 @relation(fields: [id_categoria], references: [id])
+  fotos                    Foto[]
+  valoraciones             Valoracion[]
+  detalles_orden_productos Detalle_Orden_Productos[]
+}
+
+model Servicio {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  id_empresa              String                   @db.Uuid
+  id_categoria            String                   @db.Uuid
+  nombre                  String                   @db.VarChar(255)
+  descripcion             String?                  @db.Text
+  precio                  Int
+  estado                  Boolean
+  tipo_entrega            String                   @db.VarChar(50)
+  fecha_creacion          DateTime                 @default(now())
+  fecha_actualizacion     DateTime?
+  impuestos               Decimal                  @db.Decimal(5, 2)
+  horario_atencion        String?                  @db.Text
+  empresa                 Empresa                  @relation(fields: [id_empresa], references: [id])
+  categoria               Categoria                @relation(fields: [id_categoria], references: [id])
+  fotos                   Foto[]
+  detalles_orden_servicio Detalle_Orden_Servicio[]
+  valoraciones            Valoracion[]
+}
+
+model Foto {
+  id             String    @id @default(uuid()) @db.Uuid
+  id_producto    String?   @db.Uuid
+  id_servicio    String?   @db.Uuid
+  url_foto       String?   @db.Text
+  fecha_creacion DateTime  @default(now())
+  producto       Producto? @relation(fields: [id_producto], references: [id])
+  servicio       Servicio? @relation(fields: [id_servicio], references: [id])
+}
+
+model Valoracion {
+  id             String    @id @default(uuid()) @db.Uuid
+  calificacion   Int
+  comentarios    String    @db.Text
+  id_cliente     String?   @db.Uuid
+  id_producto    String?   @db.Uuid
+  id_servicio    String?   @db.Uuid
+  fecha_creacion DateTime  @default(now())
+  cliente        Cliente?  @relation(fields: [id_cliente], references: [id])
+  producto       Producto? @relation(fields: [id_producto], references: [id])
+  servicio       Servicio? @relation(fields: [id_servicio], references: [id])
+}
+
+model Orden_Productos {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  id_cliente              String                    @db.Uuid
+  fecha_orden             DateTime                  @default(now()) @db.Timestamp
+  subtotal                Decimal                   @db.Decimal(10, 2)
+  total                   Decimal                   @db.Decimal(10, 2)
+  estado                  String                    @db.VarChar(20)
+  cliente                 Cliente                   @relation(fields: [id_cliente], references: [id])
+  detalle_orden_productos Detalle_Orden_Productos[]
+  pagos                   Pagos[]
+}
+
+model Detalle_Orden_Productos {
+  id                 String          @id @default(uuid()) @db.Uuid
+  id_orden_productos String          @db.Uuid
+  id_producto        String          @db.Uuid
+  cantidad           Int
+  precio_unitario    Decimal         @db.Decimal(10, 2)
+  orden_productos    Orden_Productos @relation(fields: [id_orden_productos], references: [id], onDelete: Cascade)
+  producto           Producto        @relation(fields: [id_producto], references: [id])
+}
+
+model Orden_Servicios {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  id_cliente             String                   @db.Uuid
+  fecha_orden            DateTime                 @default(now()) @db.Timestamp
+  subtotal               Decimal                  @db.Decimal(10, 2)
+  total                  Decimal                  @db.Decimal(10, 2)
+  estado                 String                   @db.VarChar(20)
+  cliente                Cliente                  @relation(fields: [id_cliente], references: [id])
+  detalle_orden_servicio Detalle_Orden_Servicio[]
+  pagos                  Pagos[]
+}
+
+model Detalle_Orden_Servicio {
+  id                 String          @id @default(uuid()) @db.Uuid
+  id_orden_servicios String          @db.Uuid
+  id_servicio        String          @db.Uuid
+  orden_servicios    Orden_Servicios @relation(fields: [id_orden_servicios], references: [id])
+  servicio           Servicio        @relation(fields: [id_servicio], references: [id])
+}
+
+model Pagos {
+  id                 String  @id @default(uuid()) @db.Uuid
+  id_cliente         String  @db.Uuid
+  id_orden_productos String? @unique @db.Uuid
+  id_orden_servicios String? @unique @db.Uuid
+  metodo_pago        String? @db.VarChar(100)
+  id_pago_mp         String? @db.Text
+  estado             String?
+  url_pago           String?
+
+  cliente         Cliente          @relation(fields: [id_cliente], references: [id])
+  orden_productos Orden_Productos? @relation(fields: [id_orden_productos], references: [id])
+  orden_servicios Orden_Servicios? @relation(fields: [id_orden_servicios], references: [id])
+}
