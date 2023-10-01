@@ -8,6 +8,8 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
+    "plugins": ["json", "prettier"],
     "rules": {
+      "json/undefined": "off"
     }
 }
