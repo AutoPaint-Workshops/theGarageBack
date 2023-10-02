@@ -1,12 +1,12 @@
-import { prisma } from '../../../database.js';
-import { signToken, verifyToken } from '../auth.js';
-import { transporter } from '../mailer.js';
+import { prisma } from "../../../database.js";
+import { signToken, verifyToken } from "../auth.js";
+import { transporter } from "../mailer.js";
 import {
   validateCreate,
   validatePasswordRecovery,
   validatePasswordUpdate,
   validateSignIn,
-} from './model.js';
+} from "./model.js";
 import {
   ifType,
   isActive,
@@ -14,14 +14,14 @@ import {
   encryptPassword,
   verifyPassword,
   urlDocument,
-} from './utils.js';
+} from "./utils.js";
 
 export const tipo = async (req, res, next) => {
   const { params = {} } = req;
   try {
     if (ifType(params.tipo)) {
       next({
-        message: 'Tipo de usuario inválido',
+        message: "Tipo de usuario inválido",
         status: 404,
       });
     } else {
@@ -40,7 +40,7 @@ export const authEmail = async (req, res, next) => {
 
   if (!decoded) {
     return next({
-      message: 'Prohibido',
+      message: "Prohibido",
       status: 400,
     });
   }
@@ -62,11 +62,11 @@ export const authEmail = async (req, res, next) => {
 
     res.status(201);
     res.json({
-      message: 'Autenticacion correcta',
+      message: "Autenticacion correcta",
     });
   } catch (error) {
     next({
-      message: 'No se pudo autenticar la cuenta',
+      message: "No se pudo autenticar la cuenta",
       status: 400,
     });
   }
@@ -80,13 +80,13 @@ export const resendEmail = async (req, res, next) => {
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
-        estatus: 'Confirmacion',
+        estatus: "Confirmacion",
       },
     });
 
     if (!user) {
       return next({
-        message: 'El email no se encuentra registrado',
+        message: "El email no se encuentra registrado",
         status: 400,
       });
     }
@@ -97,14 +97,14 @@ export const resendEmail = async (req, res, next) => {
     await transporter.sendMail({
       from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
       to: correo,
-      subject: 'Reenvío de codigo de autenticación',
-      text: 'Tu usuario se ha creado satisfactoriamente',
+      subject: "Reenvío de codigo de autenticación",
+      text: "Tu usuario se ha creado satisfactoriamente",
       html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
     });
 
     res.status(200);
     res.json({
-      message: 'Se ha enviado el mensaje de autenticación a tu correo',
+      message: "Se ha enviado el mensaje de autenticación a tu correo",
     });
   } catch (error) {
     return next({ error });
@@ -116,10 +116,10 @@ export const signup = async (req, res, next) => {
   const { data } = body;
 
   const photoReq = req.files
-    ? req.files.filter((file) => file.mimetype === 'image/jpeg')
+    ? req.files.filter((file) => file.mimetype === "image/jpeg")
     : [];
   const pdfReq = req.files
-    ? req.files.filter((file) => file.mimetype === 'application/pdf')
+    ? req.files.filter((file) => file.mimetype === "application/pdf")
     : [];
 
   const signUpBody = JSON.parse(data);
@@ -141,7 +141,7 @@ export const signup = async (req, res, next) => {
       data: {
         ...userData,
         url_foto: foto,
-        estatus: 'Confirmacion',
+        estatus: "Confirmacion",
         contrasena: password,
       },
     });
@@ -149,15 +149,15 @@ export const signup = async (req, res, next) => {
     const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
     const token = signToken({ correo, tipoUsuario });
 
-    await transporter.sendMail({
-      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-      to: correo,
-      subject: 'Codigo de autenticación',
-      text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
-    });
+    // await transporter.sendMail({
+    //   from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+    //   to: correo,
+    //   subject: 'Codigo de autenticación',
+    //   text: 'Tu usuario se ha creado satisfactoriamente',
+    //   html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
+    // });
 
-    if (tipo === 'cliente') {
+    if (tipo === "cliente") {
       await prisma.cliente.create({
         data: {
           id_usuario: userID,
@@ -166,11 +166,11 @@ export const signup = async (req, res, next) => {
       });
       res.json({
         message:
-          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
+          "Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta",
       });
     }
 
-    if (tipo === 'empresa') {
+    if (tipo === "empresa") {
       await prisma.empresa.create({
         data: {
           id_usuario: userID,
@@ -180,20 +180,21 @@ export const signup = async (req, res, next) => {
       });
       res.json({
         message:
-          'Solicitud de creación recibida, revisa tu correo para confirmar tu cuenta',
+          "Solicitud de creación recibida, revisa tu correo para confirmar tu cuenta",
       });
     }
 
-    if (tipo === 'administrador') {
+    if (tipo === "administrador") {
       res.json({
         message:
-          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
+          "Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta",
       });
     }
     res.status(201);
   } catch (error) {
+    console.log(error);
     next({
-      message: 'No se pudo crear el usuario, intentelo mas tarde',
+      message: "No se pudo crear el usuario, intentelo mas tarde",
       status: 400,
       error,
     });
@@ -224,7 +225,7 @@ export const signin = async (req, res, next) => {
 
     if (user === null) {
       return next({
-        message: 'Correo o contraseña invalidos',
+        message: "Correo o contraseña invalidos",
         status: 401,
       });
     }
@@ -233,7 +234,7 @@ export const signin = async (req, res, next) => {
 
     if (!confirmPassword) {
       return next({
-        message: 'Correo o contraseña invalidos',
+        message: "Correo o contraseña invalidos",
         status: 401,
       });
     }
@@ -250,7 +251,7 @@ export const signin = async (req, res, next) => {
             id_usuario: user.id,
           },
         })
-      : { id: 'Admin' };
+      : { id: "Admin" };
 
     const { id, tipo_usuario: userType } = user;
     const { id: idType } = typeData;
@@ -307,7 +308,7 @@ export const passwordRecovery = async (req, res, next) => {
     if (user === null) {
       return next({
         message:
-          'Si su correo se encuentra registrado, recibira un correo con un enlace para continuar',
+          "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar",
         status: 200,
       });
     }
@@ -318,14 +319,14 @@ export const passwordRecovery = async (req, res, next) => {
     await transporter.sendMail({
       from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
       to: correo,
-      subject: 'Recuperación de contraseña',
-      text: 'Recuperación de contraseña',
+      subject: "Recuperación de contraseña",
+      text: "Recuperación de contraseña",
       html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/Recoverypassword/${token} </p>`,
     });
 
     res.json({
       message:
-        'Si su correo se encuentra registrado, recibira un correo con un enlace para continuar',
+        "Si su correo se encuentra registrado, recibira un correo con un enlace para continuar",
       status: 200,
     });
   } catch (error) {
@@ -341,7 +342,7 @@ export const updatePassword = async (req, res, next) => {
 
   if (!decoded) {
     return next({
-      message: 'Prohibido',
+      message: "Prohibido",
       status: 403,
     });
   }
@@ -366,7 +367,7 @@ export const updatePassword = async (req, res, next) => {
         },
       });
       res.json({
-        message: 'Confraseña actualizada correctamente',
+        message: "Confraseña actualizada correctamente",
         status: 200,
       });
     } catch (error) {
@@ -374,5 +375,36 @@ export const updatePassword = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+  }
+};
+
+export const testActivationLink = async (req, res, next) => {
+  const { body } = req;
+  const { correo } = body;
+
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        correo,
+        estatus: 'Confirmacion',
+      },
+    });
+
+    if (!user) {
+      return next({
+        message: 'El email no se encuentra registrado',
+        status: 400,
+      });
+    }
+
+    const { tipo_usuario: tipoUsuario } = user;
+    const token = signToken({ correo, tipoUsuario });
+
+    res.status(200);
+    res.json({
+      activation_url: `${process.env.WEB_URL}/activacion/${token}`,
+    });
+  } catch (error) {
+    return next({ error });
   }
 };

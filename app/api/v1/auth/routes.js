@@ -13,6 +13,7 @@ export const router = Router();
 router.route('/signin').post(controller.signin);
 router.route('/confirmacion/:token').post(controller.authEmail);
 router.route('/reenviarcorreo').post(controller.resendEmail);
+router.route('/testactivation').post(controller.testActivationLink);
 
 router.route('/recuperarcontrasena/:token').patch(controller.updatePassword);
 router.route('/recuperarcontrasena').post(controller.passwordRecovery);
