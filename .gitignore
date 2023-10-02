@@ -2,5 +2,11 @@ node_modules/
 Thumbs.db
 .DS_Store
 .env
+.env.test
 temp/
 .vscode/settings.json
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

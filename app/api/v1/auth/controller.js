@@ -377,3 +377,34 @@ export const updatePassword = async (req, res, next) => {
     next(error);
   }
 };
+
+export const testActivationLink = async (req, res, next) => {
+  const { body } = req;
+  const { correo } = body;
+
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        correo,
+        estatus: 'Confirmacion',
+      },
+    });
+
+    if (!user) {
+      return next({
+        message: 'El email no se encuentra registrado',
+        status: 400,
+      });
+    }
+
+    const { tipo_usuario: tipoUsuario } = user;
+    const token = signToken({ correo, tipoUsuario });
+
+    res.status(200);
+    res.json({
+      activation_url: `${process.env.WEB_URL}/activacion/${token}`,
+    });
+  } catch (error) {
+    return next({ error });
+  }
+};
