@@ -10,6 +10,8 @@
     "test": "dotenv -e .env.test -- vitest",
     "pree2e": "dotenv -e .env.test -- npx prisma db push --force-reset && npx prisma db push",
     "e2e": "cross-env NODE_ENV=test node index"
+  
+   
   },
   "keywords": [],
   "author": "",
@@ -25,7 +27,9 @@
     "eslint-plugin-json": "^3.1.0",
     "prisma": "^5.0.0",
     "supertest": "^6.3.3",
-    "vitest": "^0.34.6"
+    "vitest": "^0.34.6",
+    "jest": "^29.6.2",
+   
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
@@ -44,6 +48,7 @@
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.0",
     "validator": "^13.11.0",
+    "vitest": "^0.34.6",
     "zod": "^3.22.2"
   }
 }

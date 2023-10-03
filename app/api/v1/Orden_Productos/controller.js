@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { prisma } from "../../../database.js";
 import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
@@ -145,7 +146,7 @@ export const all = async (req, res, next) => {
   });
 
   try {
-    const [result, total] = await Promise.all([
+    const [result] = await Promise.all([
       prisma.orden_Productos.findMany({
         skip: offset,
         take: limit,
@@ -172,17 +173,75 @@ export const all = async (req, res, next) => {
       prisma.orden_Productos.count(),
     ]);
 
+    const orderWithProducts = await Promise.all(
+      result.map(async (orden) => {
+        const { usuario } = await prisma.cliente.findUnique({
+          where: {
+            id: orden.id_cliente,
+          },
+          include: {
+            usuario: {
+              select: {
+                url_foto: true,
+              },
+            },
+          },
+        });
+
+        const valores = await Promise.all(
+          orden.detalle_orden_productos.map(async (detalle) => {
+            const { nombre, descripcion, fotos, id_empresa } =
+              await prisma.producto.findUnique({
+                where: {
+                  id: detalle.id_producto,
+                },
+                include: {
+                  fotos: {
+                    select: {
+                      url_foto: true,
+                    },
+                  },
+                },
+              });
+
+            return { ...detalle, nombre, descripcion, fotos, id_empresa };
+          })
+        );
+
+        const { usuario: empresa } = await prisma.empresa.findUnique({
+          where: {
+            id: valores[0].id_empresa,
+          },
+          include: {
+            usuario: {
+              select: {
+                url_foto: true,
+              },
+            },
+          },
+        });
+        const { url_foto: foto_cliente } = usuario;
+        const { url_foto: foto_empresa } = empresa;
+        return {
+          foto_cliente,
+          foto_empresa,
+          ...orden,
+          detalle_orden_productos: valores,
+        };
+      })
+    );
+
     res.json({
-      data: result,
+      data: orderWithProducts,
       meta: {
         limit,
         offset,
-        total,
         orderBy,
         direction,
       },
     });
   } catch (error) {
+    console.log("Error", error);
     next(error);
   }
 };
