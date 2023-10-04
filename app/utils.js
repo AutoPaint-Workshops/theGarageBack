@@ -18,6 +18,7 @@ export const parseOrderParams = ({
   fields = [],
   orderBy = order.orderBy,
   direction = order.direction,
+  date = order.date,
 }) => ({
   orderBy: fields.includes(orderBy) ? orderBy : order.orderBy,
   direction: order.options.includes(direction) ? direction : order.direction,

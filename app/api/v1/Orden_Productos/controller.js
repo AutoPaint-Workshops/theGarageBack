@@ -10,14 +10,24 @@ export const create = async (req, res, next) => {
   const { idType } = decoded;
   let result;
   let reference;
+  let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
+  console.log("Encabezado", ordenProductos);
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
       result = await transaction.orden_Productos.create({
         data: ordenProductos,
       });
+      console.log("Encabezado", result);
+      resultEstado = await transaction.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: result.id,
+          estado: "Creado",
+        },
+      });
+
       reference = result.id;
       await Promise.all(
         detallesOrdenProductos.map(async (detalle) => {
@@ -96,7 +106,7 @@ export const create = async (req, res, next) => {
 export const all = async (req, res, next) => {
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
-  const { orderBy, direction } = parseOrderParams({
+  const { orderBy, direction, date } = parseOrderParams({
     fields,
     ...query,
   });
@@ -144,6 +154,30 @@ export const all = async (req, res, next) => {
             },
           },
         });
+        const { usuario: empresa } = await prisma.empresa.findUnique({
+          where: {
+            id: orden.id_empresa,
+          },
+          include: {
+            usuario: {
+              select: {
+                url_foto: true,
+              },
+            },
+          },
+        });
+        const estados = await prisma.estados_Orden_Productos.findMany({
+          where: {
+            id_orden_productos: orden.id,
+          },
+          select: {
+            estado: true,
+            fecha_estado: true,
+          },
+          orderBy: {
+            [orderBy]: date,
+          },
+        });
 
         const valores = await Promise.all(
           orden.detalle_orden_productos.map(async (detalle) => {
@@ -165,24 +199,13 @@ export const all = async (req, res, next) => {
           })
         );
 
-        const { usuario: empresa } = await prisma.empresa.findUnique({
-          where: {
-            id: valores[0].id_empresa,
-          },
-          include: {
-            usuario: {
-              select: {
-                url_foto: true,
-              },
-            },
-          },
-        });
         const { url_foto: foto_cliente } = usuario;
         const { url_foto: foto_empresa } = empresa;
         return {
           foto_cliente,
           foto_empresa,
           ...orden,
+          estados,
           detalle_orden_productos: valores,
         };
       })

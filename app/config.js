@@ -14,6 +14,7 @@ export const configuration = {
     options: ["asc", "desc"],
     direction: "desc",
     orderBy: "id",
+    date: "asc",
   },
   token: {
     secret: process.env.TOKEN_SECRET,

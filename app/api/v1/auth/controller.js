@@ -149,7 +149,6 @@ export const signup = async (req, res, next) => {
     const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
     const token = signToken({ correo, tipoUsuario });
 
-<<<<<<< HEAD
     // await transporter.sendMail({
     //   from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
     //   to: correo,
@@ -157,15 +156,6 @@ export const signup = async (req, res, next) => {
     //   text: 'Tu usuario se ha creado satisfactoriamente',
     //   html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
     // });
-=======
-    /* await transporter.sendMail({
-      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-      to: correo,
-      subject: 'Codigo de autenticación',
-      text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
-    });*/
->>>>>>> 51af6c7 (Se ajusta el end point de Orden_producto para que permita consultar todas las ordenes de producto)
 
     if (tipo === "cliente") {
       await prisma.cliente.create({
@@ -396,13 +386,13 @@ export const testActivationLink = async (req, res, next) => {
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
-        estatus: 'Confirmacion',
+        estatus: "Confirmacion",
       },
     });
 
     if (!user) {
       return next({
-        message: 'El email no se encuentra registrado',
+        message: "El email no se encuentra registrado",
         status: 400,
       });
     }

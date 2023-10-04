@@ -138,9 +138,15 @@ export const receiveWebhook = async (req, res) => {
             id_orden_productos: idOrden,
           },
           data: {
-            estado: "approved",
+            estado: "Aprobado",
             id_pago_mp: data.body.id.toString(),
             metodo_pago: data.body.payment_method.type,
+          },
+        });
+        await prisma.estados_Orden_Productos.create({
+          data: {
+            id_orden_productos: idOrden,
+            estado: "Pagada",
           },
         });
       } catch (error) {
@@ -152,16 +158,22 @@ export const receiveWebhook = async (req, res) => {
           id_orden_productos: idOrden,
         },
         data: {
-          estado: "rejected",
+          estado: "Rechazada",
+        },
+      });
+      await prisma.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: idOrden,
+          estado: "Rechazada",
         },
       });
     }
 
     // console.log(data);
-    res.status(200);
+    res.status(200).send();
   }
 
-  res.status(200);
+  res.status(200).send();
 };
 
 const descargarProductos = async (idOrden) => {
