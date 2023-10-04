@@ -386,13 +386,13 @@ export const testActivationLink = async (req, res, next) => {
     const user = await prisma.usuario.findUnique({
       where: {
         correo,
-        estatus: 'Confirmacion',
+        estatus: "Confirmacion",
       },
     });
 
     if (!user) {
       return next({
-        message: 'El email no se encuentra registrado',
+        message: "El email no se encuentra registrado",
         status: 400,
       });
     }

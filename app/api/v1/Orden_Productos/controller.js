@@ -1,51 +1,8 @@
+/* eslint-disable camelcase */
 import { prisma } from "../../../database.js";
 import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 import { mercadopagoCreateOrder } from "../mercadopago.config.js";
-/*
-export const create = async (req, res, next) => {
-  const { body = {}, decoded } = req;
-  const { ordenProductos, detallesOrdenProductos } = body;
-  const { idType } = decoded;
-  let result;
-  const detallesImprmir = [];
-  ordenProductos.id_cliente = idType;
-  try {
-    await prisma.$transaction(async (transaction) => {
-      // Inserta la factura
-      result = await transaction.orden_Productos.create({
-        data: ordenProductos,
-      });
-
-      // Inserta múltiples detalles de factura
-
-      await Promise.all(
-        detallesOrdenProductos.map(async (detalle) => {
-          const resultDetalle =
-            await transaction.detalle_Orden_Productos.create({
-              data: {
-                id_orden_productos: result.id,
-                ...detalle,
-              },
-            });
-
-          detallesImprmir.push(resultDetalle);
-        }),
-      );
-    });
-
-    res.status(201);
-    res.json({
-      data: {
-        orden: result,
-        detalle: detallesImprmir,
-      },
-    });
-  } catch (error) {
-    console.error('Error en la transacción:', error);
-    next(error);
-  }
-};*/
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
@@ -53,14 +10,24 @@ export const create = async (req, res, next) => {
   const { idType } = decoded;
   let result;
   let reference;
+  let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
+  console.log("Encabezado", ordenProductos);
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
       result = await transaction.orden_Productos.create({
         data: ordenProductos,
       });
+      console.log("Encabezado", result);
+      resultEstado = await transaction.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: result.id,
+          estado: "Creado",
+        },
+      });
+
       reference = result.id;
       await Promise.all(
         detallesOrdenProductos.map(async (detalle) => {
@@ -139,26 +106,27 @@ export const create = async (req, res, next) => {
 export const all = async (req, res, next) => {
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
-  const { orderBy, direction } = parseOrderParams({
+  const { orderBy, direction, date } = parseOrderParams({
     fields,
     ...query,
   });
 
   try {
-    const [result, total] = await Promise.all([
+    const [result] = await Promise.all([
       prisma.orden_Productos.findMany({
         skip: offset,
         take: limit,
+
         orderBy: {
           [orderBy]: direction,
         },
-        include: {
-          cliente: {
-            select: {
-              nombre_completo: true,
-            },
-          },
-        },
+        // include: {
+        //   cliente: {
+        //     select: {
+        //       nombre_completo: true,
+        //     },
+        //   },
+        // },
         include: {
           detalle_orden_productos: {
             select: {
@@ -172,17 +140,88 @@ export const all = async (req, res, next) => {
       prisma.orden_Productos.count(),
     ]);
 
+    const orderWithProducts = await Promise.all(
+      result.map(async (orden) => {
+        const { usuario } = await prisma.cliente.findUnique({
+          where: {
+            id: orden.id_cliente,
+          },
+          include: {
+            usuario: {
+              select: {
+                url_foto: true,
+              },
+            },
+          },
+        });
+        const { usuario: empresa } = await prisma.empresa.findUnique({
+          where: {
+            id: orden.id_empresa,
+          },
+          include: {
+            usuario: {
+              select: {
+                url_foto: true,
+              },
+            },
+          },
+        });
+        const estados = await prisma.estados_Orden_Productos.findMany({
+          where: {
+            id_orden_productos: orden.id,
+          },
+          select: {
+            estado: true,
+            fecha_estado: true,
+          },
+          orderBy: {
+            [orderBy]: date,
+          },
+        });
+
+        const valores = await Promise.all(
+          orden.detalle_orden_productos.map(async (detalle) => {
+            const { nombre, descripcion, fotos, id_empresa } =
+              await prisma.producto.findUnique({
+                where: {
+                  id: detalle.id_producto,
+                },
+                include: {
+                  fotos: {
+                    select: {
+                      url_foto: true,
+                    },
+                  },
+                },
+              });
+
+            return { ...detalle, nombre, descripcion, fotos, id_empresa };
+          })
+        );
+
+        const { url_foto: foto_cliente } = usuario;
+        const { url_foto: foto_empresa } = empresa;
+        return {
+          foto_cliente,
+          foto_empresa,
+          ...orden,
+          estados,
+          detalle_orden_productos: valores,
+        };
+      })
+    );
+
     res.json({
-      data: result,
+      data: orderWithProducts,
       meta: {
         limit,
         offset,
-        total,
         orderBy,
         direction,
       },
     });
   } catch (error) {
+    console.log("Error", error);
     next(error);
   }
 };
