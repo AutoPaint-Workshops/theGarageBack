@@ -3,7 +3,7 @@ import { ProductosSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
 import fs from "fs";
-import { filtrarProductosPorCalificacion } from "./utils.js";
+import { filtrarProductosPorMediana } from "./utils.js";
 
 /**
  * Controlador para Crear un producto
@@ -500,6 +500,33 @@ export const filter = async (req, res, next) => {
       };
     }
 
+    // Calcular la mediana de las calificaciones de un producto
+
+    if (calificaciones.length > 0) {
+      // obtengo todos los productos con sus valoraciones
+      const productosConValoracion = await prisma.producto.findMany({
+        include: {
+          valoraciones: true,
+        },
+      });
+
+      // obtengo los productos que cumplen con el filtro de calificacion
+      const productosFiltrados = filtrarProductosPorMediana(
+        productosConValoracion,
+        calificaciones
+      );
+
+      // obtengo los ids
+      const idsProductosFiltrados = productosFiltrados.map(
+        (producto) => producto.id
+      );
+
+      // agrego los ids al where
+      where.id = {
+        in: idsProductosFiltrados,
+      };
+    }
+
     const [result, total] = await Promise.all([
       prisma.producto.findMany({
         skip: offset,
@@ -526,19 +553,12 @@ export const filter = async (req, res, next) => {
       prisma.producto.count({ where }),
     ]);
 
-    // Filtrar productos por calificacion o retornar todos los productos
-
-    const productosFiltrados =
-      calificaciones.length > 0
-        ? filtrarProductosPorCalificacion(result, filterCalificacion)
-        : undefined;
-
     res.json({
-      data: productosFiltrados ? productosFiltrados : result,
+      data: result,
       meta: {
         limit,
         offset,
-        total: productosFiltrados ? productosFiltrados.length : total,
+        total: total,
         orderBy,
         direction,
       },
