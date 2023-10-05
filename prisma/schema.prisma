@@ -38,22 +38,23 @@ model Cliente {
 }
 
 model Empresa {
-  id                             String     @id @default(uuid()) @db.Uuid
-  id_usuario                     String?    @unique @db.Uuid
-  razon_social                   String?    @db.VarChar(255)
-  tipo_documento_empresa         String?    @db.VarChar(50)
-  numero_documento_empresa       String?    @unique @db.VarChar(50)
-  telefono                       String?    @db.VarChar(20)
-  sitio_web                      String?    @db.Text
-  camara_comercio                String?    @db.Text
-  representante_legal            String?    @db.VarChar(255)
-  tipo_documento_representante   String?    @db.VarChar(50)
-  numero_documento_representante String?    @unique @db.VarChar(50)
-  correo_representante           String?    @db.VarChar(255)
-  descripcion                    String?    @db.Text
-  usuario                        Usuario?   @relation(fields: [id_usuario], references: [id])
+  id                             String            @id @default(uuid()) @db.Uuid
+  id_usuario                     String?           @unique @db.Uuid
+  razon_social                   String?           @db.VarChar(255)
+  tipo_documento_empresa         String?           @db.VarChar(50)
+  numero_documento_empresa       String?           @unique @db.VarChar(50)
+  telefono                       String?           @db.VarChar(20)
+  sitio_web                      String?           @db.Text
+  camara_comercio                String?           @db.Text
+  representante_legal            String?           @db.VarChar(255)
+  tipo_documento_representante   String?           @db.VarChar(50)
+  numero_documento_representante String?           @unique @db.VarChar(50)
+  correo_representante           String?           @db.VarChar(255)
+  descripcion                    String?           @db.Text
+  usuario                        Usuario?          @relation(fields: [id_usuario], references: [id])
   productos                      Producto[]
   servicios                      Servicio[]
+  orden_Productos                Orden_Productos[]
 }
 
 model Categoria {
@@ -131,13 +132,22 @@ model Valoracion {
 model Orden_Productos {
   id                      String                    @id @default(uuid()) @db.Uuid
   id_cliente              String                    @db.Uuid
+  id_empresa              String                    @db.Uuid
   fecha_orden             DateTime                  @default(now()) @db.Timestamp
-  subtotal                Decimal                   @db.Decimal(10, 2)
   total                   Decimal                   @db.Decimal(10, 2)
-  estado                  String                    @db.VarChar(20)
   cliente                 Cliente                   @relation(fields: [id_cliente], references: [id])
+  empresa                 Empresa                   @relation(fields: [id_empresa], references: [id])
   detalle_orden_productos Detalle_Orden_Productos[]
+  estado                  Estados_Orden_Productos[]
   pagos                   Pagos[]
+}
+
+model Estados_Orden_Productos {
+  id                      String          @id @default(uuid()) @db.Uuid
+  id_orden_productos      String          @db.Uuid
+  estado                  String          @db.VarChar(20)
+  fecha_estado            DateTime        @default(now()) @db.Timestamp
+  estados_orden_productos Orden_Productos @relation(fields: [id_orden_productos], references: [id], onDelete: Cascade)
 }
 
 model Detalle_Orden_Productos {
