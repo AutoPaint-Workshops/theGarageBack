@@ -1,8 +1,10 @@
 /* eslint-disable camelcase */
-import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
-import { mercadopagoCreateOrder } from "../mercadopago.config.js";
+import { prisma } from '../../../database.js';
+import { fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { mercadopagoCreateOrder } from '../mercadopago.config.js';
+import { getAll, getAllAdmin } from './utils.js';
+import _ from 'lodash';
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
@@ -13,18 +15,18 @@ export const create = async (req, res, next) => {
   let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
-  console.log("Encabezado", ordenProductos);
+  console.log('Encabezado', ordenProductos);
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
       result = await transaction.orden_Productos.create({
         data: ordenProductos,
       });
-      console.log("Encabezado", result);
+      console.log('Encabezado', result);
       resultEstado = await transaction.estados_Orden_Productos.create({
         data: {
           id_orden_productos: result.id,
-          estado: "Creado",
+          estado: 'Creado',
         },
       });
 
@@ -40,7 +42,7 @@ export const create = async (req, res, next) => {
             });
 
           detallesImprmir.push(resultDetalle);
-        })
+        }),
       );
     });
     const elementos = detallesOrdenProductos;
@@ -64,7 +66,7 @@ export const create = async (req, res, next) => {
           description: result.descripcion,
           // picture_url: photo.url_foto,
           unit_price: result.precio,
-          currency_id: "COP",
+          currency_id: 'COP',
           quantity: elemento.cantidad,
         };
 
@@ -82,7 +84,7 @@ export const create = async (req, res, next) => {
             id_cliente: idType,
             id_orden_productos: reference,
             url_pago: orden.body.init_point,
-            estado: "creado",
+            estado: 'creado',
           },
         });
         console.log(resultPago);
@@ -98,13 +100,15 @@ export const create = async (req, res, next) => {
     }
     res.status(201);
   } catch (error) {
-    console.error("Error en la transacción:", error);
+    console.error('Error en la transacción:', error);
     next(error);
   }
 };
 
 export const all = async (req, res, next) => {
-  const { query } = req;
+  const { query = {}, decoded } = req;
+  const { id, idType, userType } = decoded;
+
   const { offset, limit } = parsePaginationParams(query);
   const { orderBy, direction, date } = parseOrderParams({
     fields,
@@ -112,116 +116,37 @@ export const all = async (req, res, next) => {
   });
 
   try {
-    const [result] = await Promise.all([
-      prisma.orden_Productos.findMany({
-        skip: offset,
-        take: limit,
-
-        orderBy: {
-          [orderBy]: direction,
-        },
-        // include: {
-        //   cliente: {
-        //     select: {
-        //       nombre_completo: true,
-        //     },
-        //   },
-        // },
-        include: {
-          detalle_orden_productos: {
-            select: {
-              id_producto: true,
-              cantidad: true,
-              precio_unitario: true,
-            },
-          },
-        },
-      }),
-      prisma.orden_Productos.count(),
-    ]);
-
-    const orderWithProducts = await Promise.all(
-      result.map(async (orden) => {
-        const { usuario } = await prisma.cliente.findUnique({
-          where: {
-            id: orden.id_cliente,
-          },
-          include: {
-            usuario: {
-              select: {
-                url_foto: true,
-              },
-            },
-          },
-        });
-        const { usuario: empresa } = await prisma.empresa.findUnique({
-          where: {
-            id: orden.id_empresa,
-          },
-          include: {
-            usuario: {
-              select: {
-                url_foto: true,
-              },
-            },
-          },
-        });
-        const estados = await prisma.estados_Orden_Productos.findMany({
-          where: {
-            id_orden_productos: orden.id,
-          },
-          select: {
-            estado: true,
-            fecha_estado: true,
-          },
-          orderBy: {
-            [orderBy]: date,
-          },
-        });
-
-        const valores = await Promise.all(
-          orden.detalle_orden_productos.map(async (detalle) => {
-            const { nombre, descripcion, fotos, id_empresa } =
-              await prisma.producto.findUnique({
-                where: {
-                  id: detalle.id_producto,
-                },
-                include: {
-                  fotos: {
-                    select: {
-                      url_foto: true,
-                    },
-                  },
-                },
-              });
-
-            return { ...detalle, nombre, descripcion, fotos, id_empresa };
-          })
-        );
-
-        const { url_foto: foto_cliente } = usuario;
-        const { url_foto: foto_empresa } = empresa;
-        return {
-          foto_cliente,
-          foto_empresa,
-          ...orden,
-          estados,
-          detalle_orden_productos: valores,
-        };
-      })
-    );
-
-    res.json({
-      data: orderWithProducts,
-      meta: {
-        limit,
+    if (userType === 'Administrador') {
+      const { data, meta } = await getAllAdmin(
         offset,
+        limit,
         orderBy,
         direction,
-      },
-    });
+        date,
+      );
+
+      res.json({
+        data,
+        meta,
+      });
+    } else {
+      const { data, meta } = await getAll(
+        offset,
+        limit,
+        orderBy,
+        direction,
+        date,
+        idType,
+        userType,
+      );
+
+      res.json({
+        data,
+        meta,
+      });
+    }
   } catch (error) {
-    console.log("Error", error);
+    console.log('Error', error);
     next(error);
   }
 };
@@ -234,7 +159,10 @@ export const id = async (req, res, next) => {
         id: params.id,
       },
       include: {
-        detalle_orden_productos: true,
+        estado: true,
+        _count: {
+          select: { estado: true },
+        },
       },
     });
 
@@ -256,39 +184,60 @@ export const update = async (req, res, next) => {
   const { body = {}, params = {} } = req;
   const { id } = params;
 
-  try {
-    const result = await prisma.orden_Productos.update({
-      where: {
-        id,
-      },
-      data: {
-        ...body,
-      },
-    });
+  const { _count, estado } = req.result;
 
-    res.json({
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  let nuevoEstado = null;
+
+  switch (_count.estado) {
+    case 4:
+      res.json({
+        message:
+          'No se pudo realizar el cambio de estado, la orden ya se encuentra entregada',
+        status: 400,
+      });
+      break;
+    case 3:
+      if (estado[2].estado === 'Enviada') {
+        nuevoEstado = 'Entregada';
+      } else {
+        res.json({
+          message:
+            'No se pudo realizar el cambio de estado, la orden se encuentra cancelada',
+          status: 400,
+        });
+      }
+      break;
+    case 2:
+      if (body.estado === 'Enviada') {
+        nuevoEstado = 'Enviada';
+      } else {
+        nuevoEstado = 'Cancelada';
+      }
+      break;
+  }
+
+  if (nuevoEstado !== null) {
+    try {
+      const result = await prisma.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: id,
+          estado: nuevoEstado,
+        },
+      });
+
+      return res.status(200).json({
+        message: 'Estado actualizado',
+        data: result,
+        status: 200,
+      });
+    } catch (error) {
+      next({
+        status: 400,
+        message: 'No se pudo realizar el cambio de estado, verifique la orden',
+      });
+    }
   }
 };
-/*
-export const remove = async (req, res) => {
-  const { params = {} } = req;
-  const { id } = params;
-
-  try {
-    await prisma.orden_Productos.delete({
-      where: { id },
-    });
-
-    res.status(204);
-    res.end();
-  } catch (error) {
-    next(error);
-  }
-};*/
 
 export const createOrder = async (req, res, next) => {
   const elementos = req.result.detalle_orden_productos;
@@ -312,7 +261,7 @@ export const createOrder = async (req, res, next) => {
         description: result.descripcion,
         picture_url: photo.url_foto,
         unit_price: result.precio,
-        currency_id: "COP",
+        currency_id: 'COP',
         quantity: elemento.cantidad,
       };
 
