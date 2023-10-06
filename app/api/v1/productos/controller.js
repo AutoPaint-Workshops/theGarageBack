@@ -287,6 +287,83 @@ export const myProducts = async (req, res, next) => {
   }
 };
 
+export const misproductosTop = async (req, res, next) => {
+  const { query } = req;
+  const { id_empresa } = query;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  try {
+    // primero me tragio todos los productos de la empresa para luego encontrar los 3 primeros que tengas mediana 5 en valoraciones
+    const productosT = await prisma.producto.findMany({
+      where: {
+        // eslint-disable-next-line camelcase
+        id_empresa,
+      },
+      include: {
+        valoraciones: true,
+      },
+    });
+
+    const productosFiltrados = filtrarProductosPorMediana(productosT, [5]);
+
+    // obtengo los ids
+    const idsProductosFiltrados = productosFiltrados.map(
+      (producto) => producto.id
+    );
+
+    const [result, total] = await Promise.all([
+      prisma.producto.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          fotos: true,
+          valoraciones: true,
+          categoria: {
+            select: {
+              nombre_categoria: true,
+            },
+          },
+        },
+        where: {
+          // eslint-disable-next-line camelcase
+          id: {
+            in: idsProductosFiltrados,
+          },
+        },
+      }),
+      prisma.producto.count({
+        where: {
+          // eslint-disable-next-line camelcase
+          //aqui hago el where relacionado con los ids de los productos filtrados
+          id: {
+            in: idsProductosFiltrados,
+          },
+        },
+      }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
@@ -302,7 +379,17 @@ export const id = async (req, res, next) => {
           },
         },
         fotos: true,
-        valoraciones: true,
+        valoraciones: {
+          select: {
+            calificacion: true,
+            comentarios: true,
+            cliente: {
+              select: {
+                nombre_completo: true,
+              },
+            },
+          },
+        },
         empresa: {
           select: {
             razon_social: true,
@@ -452,16 +539,22 @@ export const filter = async (req, res, next) => {
     filterAlmacen,
     precioMin,
     precioMax,
+    search,
   } = req.query;
 
+  const keywords = search ? search.split("-") : [];
   const categorias = filterCategorias ? filterCategorias.split("-") : [];
   const calificaciones = filterCalificacion
     ? filterCalificacion.split("-").map(Number)
     : [];
   const marcas = filterMarcas ? filterMarcas.split("-") : [];
   const almacenes = filterAlmacen ? filterAlmacen.split("-") : [];
-  const precioI = precioMin ? Number(precioMin) : 0;
-  const precioF = precioMax ? Number(precioMax) : 0;
+
+  const precioIn = precioMin ? precioMin.split("-") : [];
+  const precioMa = precioMax ? precioMax.split("-") : [];
+  const precioI =
+    precioIn.length > 0 ? Number(precioIn[precioIn.length - 1]) : 0;
+  const precioF = precioMa.length > 0 ? Number(precioMa[0]) : 0;
 
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
@@ -498,6 +591,15 @@ export const filter = async (req, res, next) => {
         gte: precioI,
         lte: precioF,
       };
+    }
+
+    if (keywords.length > 0) {
+      where.OR = keywords.map((keyword) => ({
+        nombre: {
+          contains: keyword, // Buscar coincidencias en el nombre
+          mode: "insensitive", // Hacer la búsqueda insensible a mayúsculas/minúsculas
+        },
+      }));
     }
 
     // Calcular la mediana de las calificaciones de un producto
