@@ -3,7 +3,7 @@ import { prisma } from '../../../database.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { mercadopagoCreateOrder } from '../mercadopago.config.js';
-import { getAll, getAllAdmin } from './utils.js';
+import { getAll, getAllAdmin, updateStock } from './utils.js';
 import _ from 'lodash';
 
 export const create = async (req, res, next) => {
@@ -15,14 +15,12 @@ export const create = async (req, res, next) => {
   let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
-  console.log('Encabezado', ordenProductos);
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
       result = await transaction.orden_Productos.create({
         data: ordenProductos,
       });
-      console.log('Encabezado', result);
       resultEstado = await transaction.estados_Orden_Productos.create({
         data: {
           id_orden_productos: result.id,
@@ -87,7 +85,6 @@ export const create = async (req, res, next) => {
             estado: 'creado',
           },
         });
-        console.log(resultPago);
       } catch (error) {
         next(error);
       }
@@ -100,7 +97,6 @@ export const create = async (req, res, next) => {
     }
     res.status(201);
   } catch (error) {
-    console.error('Error en la transacción:', error);
     next(error);
   }
 };
@@ -146,7 +142,6 @@ export const all = async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.log('Error', error);
     next(error);
   }
 };
@@ -214,6 +209,10 @@ export const update = async (req, res, next) => {
         nuevoEstado = 'Cancelada';
       }
       break;
+  }
+
+  if (nuevoEstado === 'Cancelada') {
+    updateStock(id, 'add');
   }
 
   if (nuevoEstado !== null) {
