@@ -248,3 +248,53 @@ export const getAll = async (
     },
   };
 };
+
+export const updateStock = async (idOrden, method = 'substract') => {
+  let resultCant = 0;
+  let resultado = 0;
+  let res = 0;
+  try {
+    const estadoPago = await prisma.pagos.findUnique({
+      where: {
+        id_orden_productos: idOrden,
+      },
+      select: {
+        estado: true,
+      },
+    });
+    if (estadoPago.estado.length !== 'Rechazada') {
+      const detalles = await prisma.detalle_Orden_Productos.findMany({
+        where: {
+          id_orden_productos: idOrden,
+        },
+      });
+      detalles.map(async (detalle) => {
+        resultCant = await prisma.Producto.findUnique({
+          where: {
+            id: detalle.id_producto,
+          },
+          select: {
+            cantidad_disponible: true,
+          },
+        });
+
+        if (method === 'add') {
+          res = resultCant.cantidad_disponible + detalle.cantidad;
+        } else {
+          res = resultCant.cantidad_disponible - detalle.cantidad;
+        }
+
+        resultado = await prisma.Producto.update({
+          where: {
+            id: detalle.id_producto,
+          },
+          data: {
+            cantidad_disponible: res,
+          },
+        });
+      });
+    }
+  } catch (error) {
+    return error;
+  }
+};
