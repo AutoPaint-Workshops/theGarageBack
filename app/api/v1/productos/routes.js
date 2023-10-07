@@ -28,6 +28,7 @@ router
 router.route("/filter").get(controller.filter);
 
 router.route("/misproductos").get(auth, controller.myProducts);
+router.route("/misproductosTop").get(auth, controller.misproductosTop);
 
 router.route("/search/:searchTerm").get(controller.search);
 
