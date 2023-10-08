@@ -469,7 +469,7 @@ export const update = async (req, res, next) => {
         });
     }
 
-    if (files.length > 0) {
+    if (files?.length > 0) {
       const promises = files.map((file) => uploadFiles(file.path));
       const resultados = await Promise.all(promises);
 
