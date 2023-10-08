@@ -383,6 +383,7 @@ export const id = async (req, res, next) => {
           select: {
             calificacion: true,
             comentarios: true,
+            fecha_creacion: true,
             cliente: {
               select: {
                 nombre_completo: true,
