@@ -253,6 +253,8 @@ export const updateStock = async (idOrden, method = 'substract') => {
   let resultCant = 0;
   let resultado = 0;
   let res = 0;
+  let estatus = true;
+
   try {
     const estadoPago = await prisma.pagos.findUnique({
       where: {
@@ -284,12 +286,17 @@ export const updateStock = async (idOrden, method = 'substract') => {
           res = resultCant.cantidad_disponible - detalle.cantidad;
         }
 
+        if (res === 0) {
+          estatus = false;
+        }
+
         resultado = await prisma.Producto.update({
           where: {
             id: detalle.id_producto,
           },
           data: {
             cantidad_disponible: res,
+            estatus,
           },
         });
       });

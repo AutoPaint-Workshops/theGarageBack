@@ -155,6 +155,7 @@ export const id = async (req, res, next) => {
       },
       include: {
         estado: true,
+        detalle_orden_productos: true,
         _count: {
           select: { estado: true },
         },

@@ -59,7 +59,7 @@ export const id = async (req, res, next) => {
   try {
     const result = await prisma.detalle_Orden_Productos.findUnique({
       where: {
-        id: params.id,
+        id_orden: params.id,
       },
     });
 

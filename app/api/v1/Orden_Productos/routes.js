@@ -18,6 +18,10 @@ router.route('/').post(auth, controller.create).get(auth, controller.all);
 
 router.param('id', controller.id);
 
-router.route('/:id').put(controller.update).patch(controller.update);
+router
+  .route('/:id')
+  .get(auth, controller.read)
+  .put(auth, controller.update)
+  .patch(auth, controller.update);
 
 // router.route('/:id/crear_orden').post(auth, controller.createOrder);
