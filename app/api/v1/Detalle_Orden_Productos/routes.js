@@ -15,6 +15,8 @@ export const router = Router();
 
 // router.route("/").post(controller.create).get(controller.all);
 router.route('/').get(controller.all);
+
 router.param('id', controller.id);
+
 router.param('id_orden', controller.idOrden);
-router.route('/id').get(controller.read);
+router.route('/:id').get(controller.read);
