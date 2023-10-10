@@ -553,9 +553,9 @@ export const filter = async (req, res, next) => {
 
   const precioIn = precioMin ? precioMin.split("-") : [];
   const precioMa = precioMax ? precioMax.split("-") : [];
-  const precioI =
-    precioIn.length > 0 ? Number(precioIn[precioIn.length - 1]) : 0;
-  const precioF = precioMa.length > 0 ? Number(precioMa[0]) : 0;
+  const precioI = precioIn.length > 0 ? Math.min(...precioIn) : 0;
+
+  const precioF = precioMa.length > 0 ? Math.max(...precioMa) : 0;
 
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
