@@ -15,6 +15,7 @@ export const router = Router();
  */
 
 router.route('/').post(auth, controller.create).get(auth, controller.all);
+router.route('/valoraciones').post(auth, controller.getOrdersProductsRatings);
 
 router.param('id', controller.id);
 
