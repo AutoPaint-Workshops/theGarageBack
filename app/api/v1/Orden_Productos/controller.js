@@ -277,3 +277,31 @@ export const createOrder = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getOrdersProductsRatings = async (req, res, next) => {
+  const { decoded, body = {} } = req;
+  const { idType } = decoded;
+  const { orderId } = body;
+
+  try {
+    const result = await prisma.detalle_Orden_Productos.findMany({
+      where: {
+        id_orden_productos: orderId,
+      },
+      include: {
+        producto: {
+          include: {
+            valoraciones: {
+              where: {
+                id_cliente: idType,
+              },
+            },
+          },
+        },
+      },
+    });
+    res.json(result).status(200);
+  } catch (error) {
+    next(error);
+  }
+};
