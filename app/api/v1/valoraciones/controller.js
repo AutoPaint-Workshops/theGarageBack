@@ -93,6 +93,11 @@ export const all = async (req, res, next) => {
           cliente: {
             select: {
               nombre_completo: true,
+              usuario: {
+                select: {
+                  url_foto: true,
+                },
+              },
             },
           },
 
