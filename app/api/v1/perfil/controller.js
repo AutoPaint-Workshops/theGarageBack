@@ -1,7 +1,7 @@
-import { prisma } from '../../../database.js';
-import { fields } from './model.js';
-import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { urlFoto } from '../auth/utils.js';
+import { prisma } from "../../../database.js";
+import { fields } from "./model.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { urlFoto } from "../auth/utils.js";
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
@@ -16,7 +16,7 @@ export const id = async (req, res, next) => {
     if (result) {
       req.result = result;
     } else {
-      next({ message: 'Usuario invalido', status: 400 });
+      next({ message: "Usuario invalido", status: 400 });
     }
     next();
   } catch (error) {
@@ -40,25 +40,25 @@ export const read = async (req, res, next) => {
 
     if (user === null) {
       return next({
-        message: 'Usuario no encontrado',
+        message: "Usuario no encontrado",
         status: 401,
       });
     }
 
     const typeData =
-      userType === 'Cliente'
+      userType === "Cliente"
         ? await prisma.cliente.findUnique({
             where: {
               id: idType,
             },
           })
-        : userType === 'Empresa'
+        : userType === "Empresa"
         ? await prisma.empresa.findUnique({
             where: {
               id: idType,
             },
           })
-        : { id: 'Admin' };
+        : { id: "Admin" };
 
     res.json({
       data: {
@@ -91,7 +91,7 @@ export const update = async (req, res, next) => {
     const { userData = null, userTypeData = null } = updateBody;
 
     if (!userData && !userTypeData)
-      return next({ message: 'Nada que actualizar', status: 400 });
+      return next({ message: "Nada que actualizar", status: 400 });
 
     if (userData) {
       if (req.files.length > 0) {
@@ -111,7 +111,7 @@ export const update = async (req, res, next) => {
       req.user = result;
     }
 
-    if (userType === 'Cliente' && userTypeData) {
+    if (userType === "Cliente" && userTypeData) {
       const result = await prisma.cliente.update({
         where: {
           id: idType,
@@ -123,7 +123,7 @@ export const update = async (req, res, next) => {
       req.typeData = result;
     }
 
-    if (userType === 'Empresa' && userTypeData) {
+    if (userType === "Empresa" && userTypeData) {
       const result = await prisma.empresa.update({
         where: {
           id: idType,
@@ -186,8 +186,8 @@ export const all = async (req, res, next) => {
   });
   const { userType } = decoded;
 
-  if (userType !== 'Administrador')
-    return next({ message: 'Prohibido', status: 403 });
+  if (userType !== "Administrador")
+    return next({ message: "Prohibido", status: 403 });
 
   try {
     const [result, total] = await Promise.all([
@@ -245,8 +245,8 @@ export const allByType = async (req, res, next) => {
   const { userType } = decoded;
   const { tipo } = params;
 
-  if (userType !== 'Administrador')
-    return next({ message: 'Prohibido', status: 403 });
+  if (userType !== "Administrador")
+    return next({ message: "Prohibido", status: 403 });
 
   try {
     const [result, total] = await Promise.all([
@@ -277,15 +277,63 @@ export const allByType = async (req, res, next) => {
           },
         },
       }),
-      tipo === 'Cliente'
+      tipo === "Cliente"
         ? prisma.cliente.count()
-        : tipo === 'Empresa'
+        : tipo === "Empresa"
         ? prisma.empresa.count()
         : prisma.usuario.count({
             where: {
-              tipo_usuario: 'Administrador',
+              tipo_usuario: "Administrador",
             },
           }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const allCompanys = async (req, res, next) => {
+  const { query, decoded, params } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+  const { tipo } = params;
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.usuario.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        where: { tipo_usuario: "Empresa" },
+        select: {
+          url_foto: true,
+          fecha_creacion: true,
+
+          empresa: {
+            select: {
+              razon_social: true,
+            },
+          },
+        },
+      }),
+
+      prisma.empresa.count(),
     ]);
 
     res.json({
@@ -308,14 +356,14 @@ export const updateById = async (req, res, next) => {
   const { userType } = decoded;
   const { id } = result;
 
-  if (userType !== 'Administrador')
-    return next({ message: 'Prohibido', status: 403 });
+  if (userType !== "Administrador")
+    return next({ message: "Prohibido", status: 403 });
 
   try {
     const { userData = null, userTypeData = null } = body;
 
     if (!userData && !userTypeData)
-      return next({ message: 'Nada que actualizar', status: 400 });
+      return next({ message: "Nada que actualizar", status: 400 });
 
     if (userData) {
       const result = await prisma.usuario.update({
@@ -330,7 +378,7 @@ export const updateById = async (req, res, next) => {
       req.user = result;
     }
 
-    if (result.tipo_usuario === 'Cliente' && userTypeData) {
+    if (result.tipo_usuario === "Cliente" && userTypeData) {
       const result = await prisma.cliente.update({
         where: {
           id_usuario: id,
@@ -342,7 +390,7 @@ export const updateById = async (req, res, next) => {
       req.typeData = result;
     }
 
-    if (result.tipo_usuario === 'Empresa' && userTypeData) {
+    if (result.tipo_usuario === "Empresa" && userTypeData) {
       const result = await prisma.empresa.update({
         where: {
           id_usuario: id,
