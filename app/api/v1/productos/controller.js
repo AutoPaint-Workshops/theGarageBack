@@ -100,7 +100,6 @@ export const create = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -387,6 +386,11 @@ export const id = async (req, res, next) => {
             cliente: {
               select: {
                 nombre_completo: true,
+                usuario: {
+                  select: {
+                    url_foto: true,
+                  },
+                },
               },
             },
           },
@@ -394,6 +398,7 @@ export const id = async (req, res, next) => {
         empresa: {
           select: {
             razon_social: true,
+            descripcion: true,
           },
         },
       },
