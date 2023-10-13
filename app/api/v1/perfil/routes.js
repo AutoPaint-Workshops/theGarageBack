@@ -1,7 +1,7 @@
-import { Router } from "express";
-import * as controller from "./controller.js";
-import { auth } from "../auth.js";
-import { uploads } from "../../../uploadsPhotos/uploads.js";
+import { Router } from 'express';
+import * as controller from './controller.js';
+import { auth } from '../auth.js';
+import { uploads } from '../../../uploadsPhotos/uploads.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -15,19 +15,20 @@ export const router = Router();
  */
 
 router
-  .route("/")
+  .route('/')
   .get(auth, controller.read)
-  .put(auth, uploads.array("images"), controller.update)
-  .patch(auth, uploads.array("images"), controller.update);
+  .put(auth, uploads.array('images'), controller.update)
+  .patch(auth, uploads.array('images'), controller.update);
 
-router.route("/usuarios").get(auth, controller.all);
-router.route("/usuarios/:tipo").get(auth, controller.allByType);
-router.route("/empresas").get(controller.allCompanys);
+router.route('/cambiarcontrasena').put(auth, controller.changePassword);
+router.route('/usuarios').get(auth, controller.all);
+router.route('/usuarios/:tipo').get(auth, controller.allByType);
+router.route('/empresas').get(controller.allCompanys);
 
-router.param("id", controller.id);
+router.param('id', controller.id);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(auth, controller.userById)
   .put(auth, controller.updateById)
   .patch(auth, controller.updateById);

@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { prisma } from '../../../database.js';
+import { transporter } from '../mailer.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { mercadopagoCreateOrder } from '../mercadopago.config.js';
@@ -177,10 +178,71 @@ export const read = async (req, res, next) => {
 };
 
 export const update = async (req, res, next) => {
-  const { body = {}, params = {} } = req;
+  const { body = {}, params = {}, decoded = {} } = req;
   const { id } = params;
-
+  const { id: userId, userType } = decoded;
   const { _count, estado } = req.result;
+
+  let emailCliente = null;
+  let emailEmpresa = null;
+
+  if (userType === 'Cliente') {
+    emailCliente = await prisma.usuario.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        correo: true,
+      },
+    });
+
+    emailEmpresa = await prisma.orden_Productos.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        no_orden: true,
+        empresa: {
+          select: {
+            usuario: {
+              select: {
+                correo: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  if (userType === 'Empresa') {
+    emailEmpresa = await prisma.usuario.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        correo: true,
+      },
+    });
+
+    emailCliente = await prisma.orden_Productos.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        no_orden: true,
+        cliente: {
+          select: {
+            usuario: {
+              select: {
+                correo: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 
   let nuevoEstado = null;
 
@@ -195,6 +257,13 @@ export const update = async (req, res, next) => {
     case 3:
       if (estado[2].estado === 'Enviada') {
         nuevoEstado = 'Entregada';
+        await transporter.sendMail({
+          from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+          to: emailCliente.cliente.usuario.correo,
+          subject: `Tu orden #${emailCliente.no_orden} ha sido entregada`,
+          text: `Gracias por dejarnos ayudarte en tus compras, para consultar los detalles de la orden ingresa a nuestra plataforma, en la seccion de ordenes de tu perfil`,
+          html: `Gracias por dejarnos ayudarte en tus compras, para consultar los detalles de la orden ingresa a nuestra plataforma, en la seccion de ordenes de tu perfil</p>`,
+        });
       } else {
         res.json({
           message:
@@ -206,8 +275,44 @@ export const update = async (req, res, next) => {
     case 2:
       if (body.estado === 'Enviada') {
         nuevoEstado = 'Enviada';
+        await transporter.sendMail({
+          from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+          to: emailCliente.cliente.usuario.correo,
+          subject: `Tu orden #${emailCliente.no_orden} ha sido enviada`,
+          text: `Gracias por dejarnos ayudarte en tus compras,
+          Detalles de la orden:
+          ${body.mensaje}`,
+          html: `Gracias por dejarnos ayudarte en tus compras,
+          Detalles de la orden:
+          ${body.mensaje}</p>`,
+        });
       } else {
         nuevoEstado = 'Cancelada';
+        if (userType === 'Cliente') {
+          await transporter.sendMail({
+            from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+            to: emailEmpresa.empresa.usuario.correo,
+            subject: `La orden #${emailEmpresa.no_orden} ha sido cancelada`,
+            text: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}`,
+            html: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}</p>`,
+          });
+        } else {
+          await transporter.sendMail({
+            from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+            to: emailCliente.cliente.usuario.correo,
+            subject: `La orden #${emailCliente.no_orden} ha sido cancelada`,
+            text: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}`,
+            html: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}</p>`,
+          });
+        }
       }
       break;
   }
