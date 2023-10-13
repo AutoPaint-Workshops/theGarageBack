@@ -1,4 +1,4 @@
-import mercadopago from 'mercadopago';
+import mercadopago from "mercadopago";
 
 export const mercadopagoCreateOrder = async (items, reference) => {
   mercadopago.configure({
@@ -13,7 +13,7 @@ export const mercadopagoCreateOrder = async (items, reference) => {
       failure: `${process.env.WEB_URL}/purchaseDetails`,
       pending: `${process.env.WEB_URL}/purchaseDetails`,
     },
-    notification_url: `https://5652-2800-484-3d7e-6a00-84a9-97cb-5221-660b.ngrok.io/api/v1/pagos/mercadopago_webhook`,
+    notification_url: `${process.env.API_HTTPS_URL}/api/v1/pagos/mercadopago_webhook`,
   });
 
   return result;
