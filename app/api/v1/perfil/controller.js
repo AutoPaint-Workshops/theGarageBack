@@ -1,7 +1,6 @@
 import { prisma } from '../../../database.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { urlFoto } from '../auth/utils.js';
 import { encryptPassword, urlFoto, verifyPassword } from '../auth/utils.js';
 
 export const id = async (req, res, next) => {
