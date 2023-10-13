@@ -108,6 +108,16 @@ export const update = async (req, res, next) => {
           ...userData,
           fecha_actualizacion: new Date().toISOString(),
         },
+        select: {
+          ciudad: true,
+          departamento: true,
+          direccion: true,
+          fecha_actualizacion: true,
+          fecha_creacion: true,
+          correo: true,
+          tipo_usuario: true,
+          url_foto: true,
+        },
       });
       req.user = result;
     }
@@ -119,6 +129,12 @@ export const update = async (req, res, next) => {
         },
         data: {
           ...userTypeData,
+        },
+        select: {
+          nombre_completo: true,
+          numero_documento: true,
+          telefono: true,
+          tipo_documento: true,
         },
       });
       req.typeData = result;
