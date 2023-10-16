@@ -172,22 +172,7 @@ export const userById = async (req, res, next) => {
       },
     });
 
-    res.json({
-      data: {
-        user: {
-          ...user,
-          id: undefined,
-          contrasena: undefined,
-          cliente: undefined,
-          empresa: undefined,
-        },
-        typeData: {
-          ...result,
-          id: undefined,
-          id_usuario: undefined,
-        },
-      },
-    });
+    res.json({ ...user, contrasena: undefined });
   } catch (error) {
     next(error);
   }
@@ -369,14 +354,17 @@ export const allCompanys = async (req, res, next) => {
 
 export const updateById = async (req, res, next) => {
   const { body = {}, decoded = {}, result = {} } = req;
+  const { data } = body;
   const { userType } = decoded;
   const { id } = result;
+
+  const updateBody = JSON.parse(data);
 
   if (userType !== 'Administrador')
     return next({ message: 'Prohibido', status: 403 });
 
   try {
-    const { userData = null, userTypeData = null } = body;
+    const { userData = null, userTypeData = null } = updateBody;
 
     if (!userData && !userTypeData)
       return next({ message: 'Nada que actualizar', status: 400 });
