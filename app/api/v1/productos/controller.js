@@ -234,6 +234,7 @@ export const myProducts = async (req, res, next) => {
       error: "No autorizado",
     });
   }
+
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
   const { orderBy, direction } = parseOrderParams({
@@ -430,7 +431,7 @@ export const update = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType } = decoded;
 
-  if (userType !== "Empresa") {
+  if (userType === "Cliente") {
     return res.status(401).json({
       error: "No autorizado",
     });
