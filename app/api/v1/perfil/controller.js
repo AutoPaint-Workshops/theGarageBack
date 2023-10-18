@@ -2,6 +2,7 @@ import { prisma } from '../../../database.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { encryptPassword, urlFoto, verifyPassword } from '../auth/utils.js';
+import { transporter } from '../mailer.js';
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
@@ -264,6 +265,7 @@ export const allByType = async (req, res, next) => {
           tipo_usuario: true,
           estatus: true,
           url_foto: true,
+          fecha_creacion: true,
           cliente: {
             select: {
               nombre_completo: true,
@@ -369,6 +371,29 @@ export const updateById = async (req, res, next) => {
     if (!userData && !userTypeData)
       return next({ message: 'Nada que actualizar', status: 400 });
 
+    if (userData?.estatus === 'Rechazado') {
+      const { correo } = await prisma.usuario.findUnique({
+        where: {
+          id,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+        to: correo,
+        subject: 'Tu cuenta ha sido rechazada',
+        text: 'Tu cuenta ha sido rechazada por favor contacta con el administrador para mas informacion o intenta registrarte de nuevo',
+        html: `<p>Tu cuenta ha sido rechazada por favor contacta con el administrador para mas informacion o intenta registrarte de nuevo</p>`,
+      });
+
+      await prisma.usuario.delete({
+        where: {
+          id,
+        },
+      });
+      return next({ message: 'Usuario eliminado', status: 200 });
+    }
+
     if (userData) {
       const result = await prisma.usuario.update({
         where: {
@@ -380,6 +405,16 @@ export const updateById = async (req, res, next) => {
         },
       });
       req.user = result;
+    }
+
+    if (userData?.estatus === 'Activo') {
+      await transporter.sendMail({
+        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+        to: result.correo,
+        subject: 'Tu cuenta ha sido activada',
+        text: 'Tu cuenta ha sido activada ya puedes iniciar sesion',
+        html: `<p>Tu cuenta ha sido activada ya puedes iniciar sesion</p>`,
+      });
     }
 
     if (result.tipo_usuario === 'Cliente' && userTypeData) {
