@@ -30,7 +30,7 @@ model Cliente {
   tipo_documento   String?           @db.VarChar(50)
   numero_documento String?           @unique @db.VarChar(50)
   telefono         String?           @db.VarChar(20)
-  usuario          Usuario           @relation(fields: [id_usuario], references: [id])
+  usuario          Usuario           @relation(fields: [id_usuario], references: [id], onDelete: Cascade)
   valoraciones     Valoracion[]
   orden_Productos  Orden_Productos[]
   orden_Servicios  Orden_Servicios[]
@@ -51,7 +51,7 @@ model Empresa {
   numero_documento_representante String?           @unique @db.VarChar(50)
   correo_representante           String?           @db.VarChar(255)
   descripcion                    String?           @db.Text
-  usuario                        Usuario?          @relation(fields: [id_usuario], references: [id])
+  usuario                        Usuario?          @relation(fields: [id_usuario], references: [id], onDelete: Cascade)
   productos                      Producto[]
   servicios                      Servicio[]
   orden_Productos                Orden_Productos[]
