@@ -2,13 +2,13 @@ import { hash, compare } from 'bcrypt';
 import { uploadFiles } from '../../../uploadsPhotos/uploads.js';
 import fs from 'fs';
 
-export const ifType = (tipo) => {
+export const ifType = (tipo = 'error') => {
   if (tipo !== 'cliente' && tipo !== 'empresa' && tipo !== 'administrador')
     return true;
   return false;
 };
 
-export const isActive = (tipo) =>
+export const isActive = (tipo = 'error') =>
   tipo === 'Empresa' ? 'Verificando' : 'Activo';
 
 export const urlFoto = async (files) => {
