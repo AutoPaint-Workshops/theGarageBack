@@ -10,3 +10,4 @@ temp/
 .flaskenv*
 !.env.project
 !.env.vault
+coverage/

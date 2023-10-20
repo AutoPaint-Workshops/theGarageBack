@@ -94,13 +94,13 @@ export const resendEmail = async (req, res, next) => {
     const { tipo_usuario: tipoUsuario } = user;
     const token = signToken({ correo, tipoUsuario });
 
-    await transporter.sendMail({
-      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-      to: correo,
-      subject: 'Reenvío de codigo de autenticación',
-      text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
-    });
+    // await transporter.sendMail({
+    //   from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+    //   to: correo,
+    //   subject: 'Reenvío de codigo de autenticación',
+    //   text: 'Tu usuario se ha creado satisfactoriamente',
+    //   html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.API_URL}/v1/auth/confirmacion/${token} </p>`,
+    // });
 
     res.status(200);
     res.json({
@@ -153,13 +153,13 @@ export const signup = async (req, res, next) => {
       const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
       const token = signToken({ correo, tipoUsuario });
 
-      await transporter.sendMail({
-        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-        to: correo,
-        subject: 'Codigo de autenticación',
-        text: 'Tu usuario se ha creado satisfactoriamente',
-        html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
-      });
+      // await transporter.sendMail({
+      //   from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+      //   to: correo,
+      //   subject: 'Codigo de autenticación',
+      //   text: 'Tu usuario se ha creado satisfactoriamente',
+      //   html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
+      // });
 
       if (tipo === 'cliente') {
         await transaction.cliente.create({
@@ -323,13 +323,13 @@ export const passwordRecovery = async (req, res, next) => {
     const { tipo_usuario: tipoUsuario } = user;
     const token = signToken({ correo, tipoUsuario });
 
-    await transporter.sendMail({
-      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-      to: correo,
-      subject: 'Recuperación de contraseña',
-      text: 'Recuperación de contraseña',
-      html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/Recoverypassword/${token} </p>`,
-    });
+    // await transporter.sendMail({
+    //   from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+    //   to: correo,
+    //   subject: 'Recuperación de contraseña',
+    //   text: 'Recuperación de contraseña',
+    //   html: `<p>Para recuperar tu contraseña porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/Recoverypassword/${token} </p>`,
+    // });
 
     res.json({
       message:
