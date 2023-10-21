@@ -118,7 +118,6 @@ export const remove = async (req, res) => {
 };
 
 export const success = async (req, res) => {
-  console.log(req);
   res.json({
     message: 'webhook',
   });
