@@ -46,6 +46,11 @@ const SignInSchema = z.object({
   contrasena: z.string().min(8).max(16),
 });
 
+const SignInSchema2 = z.object({
+  correo: z.string().trim().email().toLowerCase(),
+  contrasena: z.string().min(8).max(16),
+});
+
 const RecoverySchema = z.object({
   correo: z.string().trim().email().toLowerCase(),
 });
