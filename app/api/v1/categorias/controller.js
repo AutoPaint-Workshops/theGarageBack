@@ -95,7 +95,7 @@ export const update = async (req, res, next) => {
   const { id } = params;
 
   try {
-    const result = await categoria.update({
+    const result = await prisma.categoria.update({
       where: {
         id,
       },
