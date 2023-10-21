@@ -1,11 +1,12 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: "node",
     globals: true,
-    coverage: {
+     coverage: {
       provider: 'v8',
     },
   },
+  
 });
