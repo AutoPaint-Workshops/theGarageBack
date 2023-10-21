@@ -573,7 +573,7 @@ export const filter = async (req, res, next) => {
   try {
     const where = {};
 
-    // uso la relacion existente entre servicio y categoria para filtrar por categorias
+    // uso la relacion existente entre y categoria para filtrar por categorias
     if (categorias.length > 0) {
       where.categoria = {
         nombre_categoria: {

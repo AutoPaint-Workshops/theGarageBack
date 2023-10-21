@@ -117,8 +117,6 @@ export const getAll = async (
 ) => {
   let result;
   if (userType === "Cliente") {
-    console.log("id", idType);
-    console.log("tipo", userType);
     const [response] = await Promise.all([
       prisma.orden_Productos.findMany({
         where: {

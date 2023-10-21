@@ -1,6 +1,6 @@
-import { prisma } from "../../../database.js";
-import { ValoracionSchema, fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { prisma } from '../../../database.js';
+import { ValoracionSchema, fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 
 // =========================================
 // * Crear una Valoracion
@@ -11,21 +11,21 @@ export const create = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType, idType: id_cliente } = decoded;
   // eslint-disable-next-line camelcase
-  const { productId: id_producto, serviceId: id_servicio } = params;
+  const { productId: id_producto } = params;
 
-  if (userType !== "Cliente") {
+  if (userType !== 'Cliente') {
     return res.status(401).json({
-      error: "No autorizado",
+      error: 'No autorizado',
     });
   }
 
   try {
     const { success, data, error } = await ValoracionSchema.safeParseAsync(
-      body
+      body,
     );
     if (!success) {
       return next({
-        message: "Validation error",
+        message: 'Validation error',
         status: 400,
         error,
       });
@@ -33,7 +33,7 @@ export const create = async (req, res, next) => {
 
     const result = await prisma.valoracion.create({
       // eslint-disable-next-line camelcase
-      data: { ...data, id_cliente, id_producto, id_servicio },
+      data: { ...data, id_cliente, id_producto },
       include: {
         cliente: {
           select: {
@@ -54,7 +54,7 @@ export const create = async (req, res, next) => {
 };
 
 // =========================================
-// * Obtener todas las valoraciones de un producto o servicio, o todas las valoraciones existentes en la tabla
+// * Obtener todas las valoraciones de un producto, o todas las valoraciones existentes en la tabla
 // =========================================
 
 export const all = async (req, res, next) => {
@@ -64,21 +64,16 @@ export const all = async (req, res, next) => {
     fields,
     ...query,
   });
-  const { productId, serviceId } = params;
+  const { productId } = params;
 
   try {
-    // let whereCondition = {
-    //   OR: [{ id_producto: productId }, { id_servicio: serviceId }],
-    // };
-
     let whereCondition = {
       id_producto: productId,
-      id_servicio: serviceId,
     };
 
     // *  Si productId es indefinido, no aplicamos la condición al where
 
-    if (productId === undefined && serviceId === undefined) {
+    if (productId === undefined) {
       whereCondition = {};
     }
 
@@ -102,11 +97,6 @@ export const all = async (req, res, next) => {
           },
 
           producto: {
-            select: {
-              nombre: true,
-            },
-          },
-          servicio: {
             select: {
               nombre: true,
             },
@@ -151,7 +141,7 @@ export const id = async (req, res, next) => {
 
     if (result === null) {
       next({
-        message: "rating not found",
+        message: 'rating not found',
         status: 404,
       });
     } else {
