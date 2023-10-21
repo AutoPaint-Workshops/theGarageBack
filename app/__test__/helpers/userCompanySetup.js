@@ -1,28 +1,28 @@
-import { encryptPassword } from "../api/v1/auth/utils";
-import { PrismaClient } from "@prisma/client";
+import { encryptPassword } from '../../api/v1/auth/utils';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export const setup = async () => {
-  const contrasena = await encryptPassword("Contra123456");
+  const contrasena = await encryptPassword('Contra123456');
 
   const user = {
-    correo: "correo_empresa@example.com",
-    contrasena: "contrasena_segura",
-    tipo_usuario: "Empresa",
-    estatus: "Activo",
+    correo: 'correo_empresa@example.com',
+    contrasena: 'contrasena_segura',
+    tipo_usuario: 'Empresa',
+    estatus: 'Activo',
     empresa: {
-      razon_social: "Mi Empresa S.A.",
-      tipo_documento_empresa: "NIT",
-      numero_documento_empresa: "123456789",
-      telefono: "123-456-7890",
-      sitio_web: "https://www.miempresa.com",
-      camara_comercio: "Ruta a la cámara de comercio",
-      representante_legal: "Nombre del representante legal",
-      tipo_documento_representante: "Cédula",
-      numero_documento_representante: "987654321",
-      correo_representante: "representante@example.com",
-      descripcion: "Descripción de la empresa",
+      razon_social: 'Mi Empresa S.A.',
+      tipo_documento_empresa: 'NIT',
+      numero_documento_empresa: '123456789',
+      telefono: '123-456-7890',
+      sitio_web: 'https://www.miempresa.com',
+      camara_comercio: 'Ruta a la cámara de comercio',
+      representante_legal: 'Nombre del representante legal',
+      tipo_documento_representante: 'Cédula',
+      numero_documento_representante: '987654321',
+      correo_representante: 'representante@example.com',
+      descripcion: 'Descripción de la empresa',
     },
   };
 

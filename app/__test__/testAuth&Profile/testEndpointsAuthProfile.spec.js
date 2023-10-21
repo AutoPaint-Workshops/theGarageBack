@@ -4,13 +4,51 @@ import FormData from 'form-data';
 
 import { app } from '../../index.js';
 import { resetDb } from '../helpers/reset-db.js';
+import { getUsers, getAdminUser } from '../helpers/createProfiles.js';
 import { getClient, getCompany } from '../fixtures/fakerData.fixture.js';
-import { getUsers } from '../helpers/createProfiles.js';
 import { signToken } from '../../api/v1/auth.js';
+import { getAuth } from '../helpers/getAuth.js';
 
-describe('SignUp tests', () => {
+describe('Testing auth and profile endpoints', () => {
   beforeEach(async () => {
     await resetDb();
+  });
+
+  test('Sign in with correct data', async () => {
+    const cliente = await getUsers('cliente');
+    await request(app)
+      .post('/api/auth/signin')
+      .send({
+        correo: cliente.userData.correo,
+        contrasena: cliente.password,
+      })
+      .expect(200);
+
+    await request(app)
+      .post('/api/auth/signin')
+      .send({
+        correo: cliente.userData.correo,
+        contrasena: 'Contra123456789',
+      })
+      .expect(403);
+  });
+
+  test('Sign in with incorrect data', async () => {
+    await request(app)
+      .post('/api/auth/signin')
+      .send({
+        correo: 'unexistent@example.com',
+        contrasena: 'Contra123',
+      })
+      .expect(403);
+
+    await request(app)
+      .post('/api/auth/signin')
+      .send({
+        correo: {},
+        contrasena: '123',
+      })
+      .expect(500);
   });
 
   test('Sign Up Client with correct data', async () => {
@@ -313,4 +351,298 @@ describe('SignUp tests', () => {
       .send({ password: 'Nueva123' });
     expect(badRequest3.status).toBe(500);
   });
+
+  test('Get my profile info as Client', async () => {
+    const client = await getUsers('cliente');
+    const token = getAuth(client);
+
+    await request(app)
+      .get('/api/v1/perfil')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+
+  test('Get my profile info as Company', async () => {
+    const company = await getUsers('empresa');
+    const token = getAuth(company);
+
+    await request(app)
+      .get('/api/v1/perfil')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+
+  test('Update my profile info as Client', async () => {
+    const client = await getUsers('cliente');
+    const token = getAuth(client);
+    const data = {
+      userData: {
+        direccion: 'Calle 123',
+      },
+      userTypeData: {
+        nombre_completo: 'Nuevo nombre',
+      },
+    };
+    const formData = new FormData();
+    const photoBinary = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46,
+    ]);
+    formData.append('data', JSON.stringify(data));
+    formData.append('images', photoBinary, { filename: 'imagen_simulada.png' });
+    const response = await request(app)
+      .put('/api/v1/perfil')
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData.getBuffer());
+    expect(response.status).toBe(200);
+    expect(response.body.user.direccion).toBe(data.userData.direccion);
+    expect(response.body.typeData.nombre_completo).toBe(
+      data.userTypeData.nombre_completo,
+    );
+
+    const badRequest = await request(app)
+      .put('/api/v1/perfil')
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`);
+    expect(badRequest.status).toBe(500);
+  });
+
+  test('Update my profile info as Company', async () => {
+    const company = await getUsers('empresa');
+    const token = getAuth(company);
+    const data = {
+      userData: {
+        direccion: 'Calle 123',
+      },
+      userTypeData: {
+        razon_social: 'Nueva razon social',
+      },
+    };
+    const formData = new FormData();
+    const photoBinary = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46,
+    ]);
+    formData.append('data', JSON.stringify(data));
+    formData.append('images', photoBinary, { filename: 'imagen_simulada.png' });
+    const response = await request(app)
+      .put('/api/v1/perfil')
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData.getBuffer());
+    expect(response.status).toBe(200);
+    expect(response.body.user.direccion).toBe(data.userData.direccion);
+    expect(response.body.typeData.nombre_completo).toBe(
+      data.userTypeData.nombre_completo,
+    );
+
+    const badRequest = await request(app)
+      .put('/api/v1/perfil')
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`);
+    expect(badRequest.status).toBe(500);
+  });
+
+  test('Change my password', async () => {
+    const client = await getUsers('cliente');
+    const token = getAuth(client);
+    const data = {
+      password: client.password,
+      newPassword: 'NuevaContrasena123',
+    };
+    const response = await request(app)
+      .put('/api/v1/perfil/cambiarcontrasena')
+      .set('Authorization', `Bearer ${token}`)
+      .send(data);
+    expect(response.status).toBe(200);
+
+    const badRequest = await request(app)
+      .put('/api/v1/perfil/cambiarcontrasena')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        password: 'MalaContrasena123',
+        newPassword: 'NuevaContrasena123',
+      });
+    expect(badRequest.status).toBe(400);
+  });
+
+  test('Get all users, clients and companies', async () => {
+    const admin = await getAdminUser();
+
+    const cliente = await getUsers('cliente');
+    await getUsers('cliente');
+    await getUsers('empresa');
+    await getUsers('empresa');
+
+    const token = getAuth(admin);
+    const token2 = getAuth(cliente);
+
+    const responseClients = await request(app)
+      .get('/api/v1/perfil/usuarios/Cliente')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(responseClients.body.data.length).toBeGreaterThan(1);
+
+    const responseCompanys = await request(app)
+      .get('/api/v1/perfil/usuarios/Empresa')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(responseCompanys.body.data.length).toBeGreaterThan(1);
+
+    await request(app)
+      .get('/api/v1/perfil/usuarios/Cliente')
+      .set('Authorization', `Bearer ${token2}`)
+      .expect(403);
+
+    const allUsers = await request(app)
+      .get('/api/v1/perfil/usuarios')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(allUsers.body.data.length).toBeGreaterThan(1);
+
+    const allCompanys = await request(app)
+      .get('/api/v1/perfil/empresas')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  }, 10000);
+
+  test('Get user by id', async () => {
+    const admin = await getAdminUser();
+    const cliente = await getUsers('cliente');
+    const company = await getUsers('empresa');
+    const token = getAuth(admin);
+
+    const resClient = await request(app)
+      .get(`/api/v1/perfil/${cliente.userData.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const resCompany = await request(app)
+      .get(`/api/v1/perfil/${company.userData.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+
+  test('Update user by id', async () => {
+    const admin = await getAdminUser();
+    const cliente = await getUsers('cliente');
+    const company = await getUsers('empresa');
+    const token = getAuth(admin);
+    const token2 = getAuth(cliente);
+    const id_client = cliente.userData.id;
+    const id_company = company.userData.id;
+
+    const data = {
+      userData: {
+        estatus: 'Bloqueado',
+      },
+      userTypeData: {
+        telefono: '123456789',
+      },
+    };
+
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+
+    const resClient = await request(app)
+      .put(`/api/v1/perfil/${id_client}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData.getBuffer())
+      .expect(200);
+
+    const resCompany = await request(app)
+      .put(`/api/v1/perfil/${id_company}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData.getBuffer())
+      .expect(200);
+
+    const badRequest = await request(app)
+      .put(`/api/v1/perfil/${id_company}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token2}`)
+      .send(formData.getBuffer())
+      .expect(403);
+    expect(badRequest.body).toEqual({
+      error: { message: 'Prohibido', status: 403 },
+    });
+
+    const formData2 = new FormData();
+    formData2.append('data', JSON.stringify({}));
+
+    const nothingToDo = await request(app)
+      .put(`/api/v1/perfil/${id_company}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData2.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData2.getBuffer())
+      .expect(400);
+    expect(nothingToDo.body).toEqual({
+      error: { message: 'Nada que actualizar', status: 400 },
+    });
+
+    const data2 = {
+      userData: {
+        estatus: 'Rechazado',
+      },
+    };
+
+    const formData3 = new FormData();
+    formData3.append('data', JSON.stringify(data2));
+
+    const rejected = await request(app)
+      .put(`/api/v1/perfil/${id_company}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData3.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData3.getBuffer())
+      .expect(200);
+    expect(rejected.body).toEqual({
+      error: { message: 'Usuario eliminado', status: 200 },
+    });
+
+    const data3 = {
+      userData: {
+        estatus: 'Activo',
+      },
+    };
+
+    const formData4 = new FormData();
+    formData4.append('data', JSON.stringify(data3));
+
+    const active = await request(app)
+      .put(`/api/v1/perfil/${id_client}`)
+      .set(
+        'Content-Type',
+        `multipart/form-data; boundary=${formData4.getBoundary()}`,
+      )
+      .set('Authorization', `Bearer ${token}`)
+      .send(formData4.getBuffer())
+      .expect(200);
+  }, 10000);
 });
