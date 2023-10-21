@@ -10,8 +10,6 @@ export const verificarProductoOservicioEnDetalleOrden = async (
   const { idType: id_cliente } = decoded;
   const { productId: id_producto, serviceId: id_servicio } = params;
 
-  console.log(id_cliente, id_producto, id_servicio);
-
   try {
     const isProductInOrder = await prisma.detalle_Orden_Productos.findFirst({
       where: {
