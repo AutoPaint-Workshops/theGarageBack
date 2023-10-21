@@ -1,7 +1,7 @@
-import { prisma } from '../../../database.js';
-import { fields } from './model.js';
-import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { response } from 'express';
+import { prisma } from "../../../database.js";
+import { fields } from "./model.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { response } from "express";
 
 export const getAllAdmin = async (offset, limit, orderBy, direction, date) => {
   const [result] = await Promise.all([
@@ -81,7 +81,7 @@ export const getAllAdmin = async (offset, limit, orderBy, direction, date) => {
             });
 
           return { ...detalle, nombre, descripcion, fotos, id_empresa };
-        }),
+        })
       );
 
       const { url_foto: foto_cliente } = usuario;
@@ -93,7 +93,7 @@ export const getAllAdmin = async (offset, limit, orderBy, direction, date) => {
         estados,
         detalle_orden_productos: valores,
       };
-    }),
+    })
   );
   return {
     data: orderWithProducts,
@@ -113,10 +113,12 @@ export const getAll = async (
   direction,
   date,
   idType,
-  userType,
+  userType
 ) => {
   let result;
-  if (userType === 'Cliente') {
+  if (userType === "Cliente") {
+    console.log("id", idType);
+    console.log("tipo", userType);
     const [response] = await Promise.all([
       prisma.orden_Productos.findMany({
         where: {
@@ -140,7 +142,7 @@ export const getAll = async (
       prisma.orden_Productos.count(),
     ]);
     result = response;
-  } else if (userType === 'Empresa') {
+  } else if (userType === "Empresa") {
     const [response] = await Promise.all([
       prisma.orden_Productos.findMany({
         where: {
@@ -224,7 +226,7 @@ export const getAll = async (
             });
 
           return { ...detalle, nombre, descripcion, fotos, id_empresa };
-        }),
+        })
       );
 
       const { url_foto: foto_cliente } = usuario;
@@ -236,7 +238,7 @@ export const getAll = async (
         estados,
         detalle_orden_productos: valores,
       };
-    }),
+    })
   );
   return {
     data: orderWithProducts,
@@ -249,7 +251,7 @@ export const getAll = async (
   };
 };
 
-export const updateStock = async (idOrden, method = 'substract') => {
+export const updateStock = async (idOrden, method = "substract") => {
   let resultCant = 0;
   let resultado = 0;
   let res = 0;
@@ -264,7 +266,7 @@ export const updateStock = async (idOrden, method = 'substract') => {
         estado: true,
       },
     });
-    if (estadoPago.estado.length !== 'Rechazada') {
+    if (estadoPago.estado.length !== "Rechazada") {
       const detalles = await prisma.detalle_Orden_Productos.findMany({
         where: {
           id_orden_productos: idOrden,
@@ -280,7 +282,7 @@ export const updateStock = async (idOrden, method = 'substract') => {
           },
         });
 
-        if (method === 'add') {
+        if (method === "add") {
           res = resultCant.cantidad_disponible + detalle.cantidad;
         } else {
           res = resultCant.cantidad_disponible - detalle.cantidad;

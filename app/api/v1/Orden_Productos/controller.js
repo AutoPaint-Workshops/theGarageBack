@@ -1,21 +1,23 @@
 /* eslint-disable camelcase */
-import { prisma } from '../../../database.js';
-import { transporter } from '../mailer.js';
-import { fields } from './model.js';
-import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { mercadopagoCreateOrder } from '../mercadopago.config.js';
-import { getAll, getAllAdmin, updateStock } from './utils.js';
-import _ from 'lodash';
+import { prisma } from "../../../database.js";
+import { transporter } from "../mailer.js";
+import { fields } from "./model.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { mercadopagoCreateOrder } from "../mercadopago.config.js";
+import { getAll, getAllAdmin, updateStock } from "./utils.js";
+import _ from "lodash";
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
   const { ordenProductos, detallesOrdenProductos } = body;
   const { idType } = decoded;
+
   let result;
   let reference;
   let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
+
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
@@ -25,7 +27,7 @@ export const create = async (req, res, next) => {
       resultEstado = await transaction.estados_Orden_Productos.create({
         data: {
           id_orden_productos: result.id,
-          estado: 'Creado',
+          estado: "Creado",
         },
       });
 
@@ -41,7 +43,7 @@ export const create = async (req, res, next) => {
             });
 
           detallesImprmir.push(resultDetalle);
-        }),
+        })
       );
     });
     const elementos = detallesOrdenProductos;
@@ -65,7 +67,7 @@ export const create = async (req, res, next) => {
           description: result.descripcion,
           // picture_url: photo.url_foto,
           unit_price: result.precio,
-          currency_id: 'COP',
+          currency_id: "COP",
           quantity: elemento.cantidad,
         };
 
@@ -83,7 +85,7 @@ export const create = async (req, res, next) => {
             id_cliente: idType,
             id_orden_productos: reference,
             url_pago: orden.body.init_point,
-            estado: 'creado',
+            estado: "creado",
           },
         });
       } catch (error) {
@@ -113,13 +115,13 @@ export const all = async (req, res, next) => {
   });
 
   try {
-    if (userType === 'Administrador') {
+    if (userType === "Administrador") {
       const { data, meta } = await getAllAdmin(
         offset,
         limit,
         orderBy,
         direction,
-        date,
+        date
       );
 
       res.json({
@@ -134,7 +136,7 @@ export const all = async (req, res, next) => {
         direction,
         date,
         idType,
-        userType,
+        userType
       );
 
       res.json({
@@ -186,7 +188,7 @@ export const update = async (req, res, next) => {
   let emailCliente = null;
   let emailEmpresa = null;
 
-  if (userType === 'Cliente') {
+  if (userType === "Cliente") {
     emailCliente = await prisma.usuario.findUnique({
       where: {
         id: userId,
@@ -215,7 +217,7 @@ export const update = async (req, res, next) => {
     });
   }
 
-  if (userType === 'Empresa') {
+  if (userType === "Empresa") {
     emailEmpresa = await prisma.usuario.findUnique({
       where: {
         id: userId,
@@ -250,13 +252,13 @@ export const update = async (req, res, next) => {
     case 4:
       res.json({
         message:
-          'No se pudo realizar el cambio de estado, la orden ya se encuentra entregada',
+          "No se pudo realizar el cambio de estado, la orden ya se encuentra entregada",
         status: 400,
       });
       break;
     case 3:
-      if (estado[2].estado === 'Enviada') {
-        nuevoEstado = 'Entregada';
+      if (estado[2].estado === "Enviada") {
+        nuevoEstado = "Entregada";
         await transporter.sendMail({
           from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
           to: emailCliente.cliente.usuario.correo,
@@ -265,16 +267,16 @@ export const update = async (req, res, next) => {
           html: `Gracias por dejarnos ayudarte en tus compras, para consultar los detalles de la orden ingresa a nuestra plataforma, en la seccion de ordenes de tu perfil</p>`,
         });
       } else {
-        res.json({
+        res.status(400).json({
           message:
-            'No se pudo realizar el cambio de estado, la orden se encuentra cancelada',
+            "No se pudo realizar el cambio de estado, la orden se encuentra cancelada",
           status: 400,
         });
       }
       break;
     case 2:
-      if (body.estado === 'Enviada') {
-        nuevoEstado = 'Enviada';
+      if (body.estado === "Enviada") {
+        nuevoEstado = "Enviada";
         await transporter.sendMail({
           from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
           to: emailCliente.cliente.usuario.correo,
@@ -287,8 +289,8 @@ export const update = async (req, res, next) => {
           ${body.mensaje}</p>`,
         });
       } else {
-        nuevoEstado = 'Cancelada';
-        if (userType === 'Cliente') {
+        nuevoEstado = "Cancelada";
+        if (userType === "Cliente") {
           await transporter.sendMail({
             from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
             to: emailEmpresa.empresa.usuario.correo,
@@ -317,8 +319,8 @@ export const update = async (req, res, next) => {
       break;
   }
 
-  if (nuevoEstado === 'Cancelada') {
-    updateStock(id, 'add');
+  if (nuevoEstado === "Cancelada") {
+    updateStock(id, "add");
   }
 
   if (nuevoEstado !== null) {
@@ -331,14 +333,14 @@ export const update = async (req, res, next) => {
       });
 
       return res.status(200).json({
-        message: 'Estado actualizado',
+        message: "Estado actualizado",
         data: result,
         status: 200,
       });
     } catch (error) {
       next({
         status: 400,
-        message: 'No se pudo realizar el cambio de estado, verifique la orden',
+        message: "No se pudo realizar el cambio de estado, verifique la orden",
       });
     }
   }
@@ -366,7 +368,7 @@ export const createOrder = async (req, res, next) => {
         description: result.descripcion,
         picture_url: photo.url_foto,
         unit_price: result.precio,
-        currency_id: 'COP',
+        currency_id: "COP",
         quantity: elemento.cantidad,
       };
 

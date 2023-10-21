@@ -1,45 +1,46 @@
-import { prisma } from '../../database.js';
-import { getProduct } from '../fixtures/fakerData.fixture.js';
+import { prisma } from "../../database.js";
+import { getProduct } from "../fixtures/fakerData.fixture.js";
+import { getUsers } from "../helpers/createProfiles.js";
 
 export const createCategories = async () => {
   await prisma.categoria.createMany({
     data: [
       {
-        nombre_categoria: 'Mecanica',
+        nombre_categoria: "Mecanica",
       },
       {
-        nombre_categoria: 'Transmision',
+        nombre_categoria: "Transmision",
       },
       {
-        nombre_categoria: 'Pinturas',
+        nombre_categoria: "Pinturas",
       },
       {
-        nombre_categoria: 'Accesorios',
+        nombre_categoria: "Accesorios",
       },
       {
-        nombre_categoria: 'Llantas',
+        nombre_categoria: "Llantas",
       },
       {
-        nombre_categoria: 'Lubricantes',
+        nombre_categoria: "Lubricantes",
       },
       {
-        nombre_categoria: 'Herramientas',
+        nombre_categoria: "Herramientas",
       },
       {
-        nombre_categoria: 'Otros',
+        nombre_categoria: "Otros",
       },
     ],
   });
 
   return [
-    'Mecanica',
-    'Transmision',
-    'Pinturas',
-    'Accesorios',
-    'Llantas',
-    'Lubricantes',
-    'Herramientas',
-    'Otros',
+    "Mecanica",
+    "Transmision",
+    "Pinturas",
+    "Accesorios",
+    "Llantas",
+    "Lubricantes",
+    "Herramientas",
+    "Otros",
   ];
 };
 
@@ -73,6 +74,58 @@ export const createProducts = async (id_empresa, category = []) => {
     });
     return response;
   } catch (error) {
-    console.log('el error', error);
+    console.log("el error", error);
   }
+};
+
+export const createOrdersProducts = async (cliente) => {
+  const empresa = await getUsers("empresa");
+  const id_cliente = cliente.userTypeData.id;
+  const id_empresa = empresa.userTypeData.id;
+  const categorias = await createCategories();
+  const producto1 = await createProducts(id_empresa, categorias);
+  let result, resultEstado, resultDetalle;
+  try {
+    result = await prisma.Orden_Productos.create({
+      data: {
+        id_empresa,
+        id_cliente,
+        total: producto1.precio,
+      },
+    });
+
+    resultEstado = await prisma.Estados_Orden_Productos.create({
+      data: {
+        id_orden_productos: result.id,
+        estado: "Creado",
+      },
+    });
+    resultEstado = await prisma.Estados_Orden_Productos.create({
+      data: {
+        id_orden_productos: result.id,
+        estado: "Pagada",
+      },
+    });
+    resultDetalle = await prisma.Detalle_Orden_Productos.create({
+      data: {
+        id_orden_productos: result.id,
+        id_producto: producto1.id,
+        cantidad: 1,
+        precio_unitario: producto1.precio,
+      },
+    });
+    return { result, resultEstado, resultDetalle };
+  } catch (error) {
+    return error;
+  }
+};
+
+export const addStateToOrder = async (idOrder, state) => {
+  const resultEstado = await prisma.Estados_Orden_Productos.create({
+    data: {
+      id_orden_productos: idOrder,
+      estado: state,
+    },
+  });
+  return resultEstado;
 };

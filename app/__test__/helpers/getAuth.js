@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { signToken } from '../../api/v1/auth';
+=======
+import { signToken } from "../../api/v1/auth";
+>>>>>>> eb88ee7 (Testing Order)
 
 export const getAuth = (user) => {
   const id = user.userData.id;
