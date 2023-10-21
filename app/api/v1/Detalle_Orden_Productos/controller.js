@@ -1,6 +1,6 @@
-import { prisma } from "../../../database.js";
-import { fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { prisma } from '../../../database.js';
+import { fields } from './model.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 /*
 export const create = async (req, res, next) => {
   const { body = {} } = req;
@@ -59,7 +59,7 @@ export const id = async (req, res, next) => {
   try {
     const result = await prisma.detalle_Orden_Productos.findUnique({
       where: {
-        id: params.id,
+        id_orden: params.id,
       },
     });
 
@@ -92,37 +92,4 @@ export const read = async (req, res, next) => {
   res.json({
     data: req.result,
   });
-};
-
-export const descargarProductos = async (req, res, next) => {
-  console.log("Logo entrar a descargarlos productos");
-  const { params = {} } = req;
-  try {
-    const detalles = await prisma.detalle_Orden_Productos.findMany({
-      where: {
-        id_orden_productos: params.id_orden,
-      },
-    });
-    detalles.map(async (detalle) => {
-      resultCant = await prisma.producto.findfindUnique({
-        where: {
-          id: detalle.id_producto,
-        },
-        select: {
-          cantidad_disponible: true,
-        },
-      });
-      resultado = await prisma.producto.update({
-        where: {
-          id: detalle.id_producto,
-        },
-        data: {
-          cantidad_disponible: resultCant - detalle.cantidad,
-        },
-      });
-    });
-  } catch (error) {
-    console.error("Error en la transacción:", error);
-    next(error);
-  }
 };

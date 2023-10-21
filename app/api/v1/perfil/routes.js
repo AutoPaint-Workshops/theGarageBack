@@ -20,13 +20,15 @@ router
   .put(auth, uploads.array('images'), controller.update)
   .patch(auth, uploads.array('images'), controller.update);
 
-router.route('/usuarios').get(auth, controller.all);
+router.route('/cambiarcontrasena').put(auth, controller.changePassword);
 router.route('/usuarios/:tipo').get(auth, controller.allByType);
+router.route('/usuarios').get(auth, controller.all);
+router.route('/empresas').get(controller.allCompanys);
 
 router.param('id', controller.id);
 
 router
   .route('/:id')
   .get(auth, controller.userById)
-  .put(auth, controller.updateById)
-  .patch(auth, controller.updateById);
+  .put(auth, uploads.array('images'), controller.updateById)
+  .patch(auth, uploads.array('images'), controller.updateById);

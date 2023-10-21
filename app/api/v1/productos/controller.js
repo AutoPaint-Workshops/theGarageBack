@@ -3,7 +3,7 @@ import { ProductosSchema, fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
 import fs from "fs";
-import { filtrarProductosPorCalificacion } from "./utils.js";
+import { filtrarProductosPorMediana } from "./utils.js";
 
 /**
  * Controlador para Crear un producto
@@ -234,6 +234,7 @@ export const myProducts = async (req, res, next) => {
       error: "No autorizado",
     });
   }
+
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
   const { orderBy, direction } = parseOrderParams({
@@ -286,6 +287,83 @@ export const myProducts = async (req, res, next) => {
   }
 };
 
+export const misproductosTop = async (req, res, next) => {
+  const { query } = req;
+  const { id_empresa } = query;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+
+  try {
+    // primero me tragio todos los productos de la empresa para luego encontrar los 3 primeros que tengas mediana 5 en valoraciones
+    const productosT = await prisma.producto.findMany({
+      where: {
+        // eslint-disable-next-line camelcase
+        id_empresa,
+      },
+      include: {
+        valoraciones: true,
+      },
+    });
+
+    const productosFiltrados = filtrarProductosPorMediana(productosT, [5]);
+
+    // obtengo los ids
+    const idsProductosFiltrados = productosFiltrados.map(
+      (producto) => producto.id
+    );
+
+    const [result, total] = await Promise.all([
+      prisma.producto.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        include: {
+          fotos: true,
+          valoraciones: true,
+          categoria: {
+            select: {
+              nombre_categoria: true,
+            },
+          },
+        },
+        where: {
+          // eslint-disable-next-line camelcase
+          id: {
+            in: idsProductosFiltrados,
+          },
+        },
+      }),
+      prisma.producto.count({
+        where: {
+          // eslint-disable-next-line camelcase
+          //aqui hago el where relacionado con los ids de los productos filtrados
+          id: {
+            in: idsProductosFiltrados,
+          },
+        },
+      }),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const id = async (req, res, next) => {
   const { params = {} } = req;
   try {
@@ -301,10 +379,27 @@ export const id = async (req, res, next) => {
           },
         },
         fotos: true,
-        valoraciones: true,
+        valoraciones: {
+          select: {
+            calificacion: true,
+            comentarios: true,
+            fecha_creacion: true,
+            cliente: {
+              select: {
+                nombre_completo: true,
+                usuario: {
+                  select: {
+                    url_foto: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         empresa: {
           select: {
             razon_social: true,
+            descripcion: true,
           },
         },
       },
@@ -336,7 +431,7 @@ export const update = async (req, res, next) => {
   // eslint-disable-next-line camelcase
   const { userType } = decoded;
 
-  if (userType !== "Empresa") {
+  if (userType === "Cliente") {
     return res.status(401).json({
       error: "No autorizado",
     });
@@ -380,7 +475,7 @@ export const update = async (req, res, next) => {
         });
     }
 
-    if (files.length > 0) {
+    if (files?.length > 0) {
       const promises = files.map((file) => uploadFiles(file.path));
       const resultados = await Promise.all(promises);
 
@@ -451,16 +546,22 @@ export const filter = async (req, res, next) => {
     filterAlmacen,
     precioMin,
     precioMax,
+    search,
   } = req.query;
 
+  const keywords = search ? search.split("-") : [];
   const categorias = filterCategorias ? filterCategorias.split("-") : [];
   const calificaciones = filterCalificacion
     ? filterCalificacion.split("-").map(Number)
     : [];
   const marcas = filterMarcas ? filterMarcas.split("-") : [];
   const almacenes = filterAlmacen ? filterAlmacen.split("-") : [];
-  const precioI = precioMin ? Number(precioMin) : 0;
-  const precioF = precioMax ? Number(precioMax) : 0;
+
+  const precioIn = precioMin ? precioMin.split("-") : [];
+  const precioMa = precioMax ? precioMax.split("-") : [];
+  const precioI = precioIn.length > 0 ? Math.min(...precioIn) : 0;
+
+  const precioF = precioMa.length > 0 ? Math.max(...precioMa) : 0;
 
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
@@ -472,7 +573,7 @@ export const filter = async (req, res, next) => {
   try {
     const where = {};
 
-    // uso la relacion existente entre servicio y categoria para filtrar por categorias
+    // uso la relacion existente entre y categoria para filtrar por categorias
     if (categorias.length > 0) {
       where.categoria = {
         nombre_categoria: {
@@ -496,6 +597,42 @@ export const filter = async (req, res, next) => {
       where.precio = {
         gte: precioI,
         lte: precioF,
+      };
+    }
+
+    if (keywords.length > 0) {
+      where.OR = keywords.map((keyword) => ({
+        nombre: {
+          contains: keyword, // Buscar coincidencias en el nombre
+          mode: "insensitive", // Hacer la búsqueda insensible a mayúsculas/minúsculas
+        },
+      }));
+    }
+
+    // Calcular la mediana de las calificaciones de un producto
+
+    if (calificaciones.length > 0) {
+      // obtengo todos los productos con sus valoraciones
+      const productosConValoracion = await prisma.producto.findMany({
+        include: {
+          valoraciones: true,
+        },
+      });
+
+      // obtengo los productos que cumplen con el filtro de calificacion
+      const productosFiltrados = filtrarProductosPorMediana(
+        productosConValoracion,
+        calificaciones
+      );
+
+      // obtengo los ids
+      const idsProductosFiltrados = productosFiltrados.map(
+        (producto) => producto.id
+      );
+
+      // agrego los ids al where
+      where.id = {
+        in: idsProductosFiltrados,
       };
     }
 
@@ -525,19 +662,12 @@ export const filter = async (req, res, next) => {
       prisma.producto.count({ where }),
     ]);
 
-    // Filtrar productos por calificacion o retornar todos los productos
-
-    const productosFiltrados =
-      calificaciones.length > 0
-        ? filtrarProductosPorCalificacion(result, filterCalificacion)
-        : undefined;
-
     res.json({
-      data: productosFiltrados ? productosFiltrados : result,
+      data: result,
       meta: {
         limit,
         offset,
-        total: productosFiltrados ? productosFiltrados.length : total,
+        total: total,
         orderBy,
         direction,
       },

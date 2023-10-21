@@ -34,9 +34,8 @@ export const all = async (req, res, next) => {
     ...query,
   });
   const { productId } = params;
-  console.log(productId);
 
-  // //OR//para que busque en id_producto o id_servicio
+  // //OR//para que busque en id_producto
 
   try {
     const [result, total] = await Promise.all([
@@ -55,7 +54,7 @@ export const all = async (req, res, next) => {
           },
         },
         where: {
-          OR: [{ id_producto: productId }, { id_servicio: productId }],
+          id_producto: productId,
         },
       }),
       prisma.foto.count(),

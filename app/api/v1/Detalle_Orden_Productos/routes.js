@@ -1,6 +1,6 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import * as controller from "./controller.js";
+import * as controller from './controller.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router();
@@ -14,8 +14,9 @@ export const router = Router();
  */
 
 // router.route("/").post(controller.create).get(controller.all);
-router.route("/").get(controller.all);
-router.param("id", controller.id);
-router.param("id_orden", controller.idOrden);
-router.route("/id").get(controller.read);
-router.route("/descargar/:id").patch(controller.descargarProductos);
+router.route('/').get(controller.all);
+
+router.param('id', controller.id);
+
+router.param('id_orden', controller.idOrden);
+router.route('/:id').get(controller.read);

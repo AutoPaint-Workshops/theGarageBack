@@ -1,7 +1,8 @@
 import { prisma } from '../../../database.js';
 import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { urlFoto } from '../auth/utils.js';
+import { encryptPassword, urlFoto, verifyPassword } from '../auth/utils.js';
+import { transporter } from '../mailer.js';
 
 export const id = async (req, res, next) => {
   const { params = {} } = req;
@@ -107,6 +108,16 @@ export const update = async (req, res, next) => {
           ...userData,
           fecha_actualizacion: new Date().toISOString(),
         },
+        select: {
+          ciudad: true,
+          departamento: true,
+          direccion: true,
+          fecha_actualizacion: true,
+          fecha_creacion: true,
+          correo: true,
+          tipo_usuario: true,
+          url_foto: true,
+        },
       });
       req.user = result;
     }
@@ -118,6 +129,12 @@ export const update = async (req, res, next) => {
         },
         data: {
           ...userTypeData,
+        },
+        select: {
+          nombre_completo: true,
+          numero_documento: true,
+          telefono: true,
+          tipo_documento: true,
         },
       });
       req.typeData = result;
@@ -156,22 +173,7 @@ export const userById = async (req, res, next) => {
       },
     });
 
-    res.json({
-      data: {
-        user: {
-          ...user,
-          id: undefined,
-          contrasena: undefined,
-          cliente: undefined,
-          empresa: undefined,
-        },
-        typeData: {
-          ...result,
-          id: undefined,
-          id_usuario: undefined,
-        },
-      },
-    });
+    res.json({ ...user, contrasena: undefined });
   } catch (error) {
     next(error);
   }
@@ -263,6 +265,7 @@ export const allByType = async (req, res, next) => {
           tipo_usuario: true,
           estatus: true,
           url_foto: true,
+          fecha_creacion: true,
           cliente: {
             select: {
               nombre_completo: true,
@@ -303,19 +306,93 @@ export const allByType = async (req, res, next) => {
   }
 };
 
+export const allCompanys = async (req, res, next) => {
+  const { query, decoded, params } = req;
+  const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    fields,
+    ...query,
+  });
+  const { tipo } = params;
+
+  try {
+    const [result, total] = await Promise.all([
+      prisma.usuario.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [orderBy]: direction,
+        },
+        where: { tipo_usuario: 'Empresa' },
+        select: {
+          url_foto: true,
+          fecha_creacion: true,
+
+          empresa: {
+            select: {
+              razon_social: true,
+            },
+          },
+        },
+      }),
+
+      prisma.empresa.count(),
+    ]);
+
+    res.json({
+      data: result,
+      meta: {
+        limit,
+        offset,
+        total,
+        orderBy,
+        direction,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateById = async (req, res, next) => {
   const { body = {}, decoded = {}, result = {} } = req;
+  const { data } = body;
   const { userType } = decoded;
   const { id } = result;
+
+  const updateBody = JSON.parse(data);
 
   if (userType !== 'Administrador')
     return next({ message: 'Prohibido', status: 403 });
 
   try {
-    const { userData = null, userTypeData = null } = body;
+    const { userData = null, userTypeData = null } = updateBody;
 
     if (!userData && !userTypeData)
       return next({ message: 'Nada que actualizar', status: 400 });
+
+    if (userData?.estatus === 'Rechazado') {
+      const { correo } = await prisma.usuario.findUnique({
+        where: {
+          id,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+        to: correo,
+        subject: 'Tu cuenta ha sido rechazada',
+        text: 'Tu cuenta ha sido rechazada por favor contacta con el administrador para mas informacion o intenta registrarte de nuevo',
+        html: `<p>Tu cuenta ha sido rechazada por favor contacta con el administrador para mas informacion o intenta registrarte de nuevo</p>`,
+      });
+
+      await prisma.usuario.delete({
+        where: {
+          id,
+        },
+      });
+      return next({ message: 'Usuario eliminado', status: 200 });
+    }
 
     if (userData) {
       const result = await prisma.usuario.update({
@@ -328,6 +405,16 @@ export const updateById = async (req, res, next) => {
         },
       });
       req.user = result;
+    }
+
+    if (userData?.estatus === 'Activo') {
+      await transporter.sendMail({
+        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+        to: result.correo,
+        subject: 'Tu cuenta ha sido activada',
+        text: 'Tu cuenta ha sido activada ya puedes iniciar sesion',
+        html: `<p>Tu cuenta ha sido activada ya puedes iniciar sesion</p>`,
+      });
     }
 
     if (result.tipo_usuario === 'Cliente' && userTypeData) {
@@ -357,6 +444,46 @@ export const updateById = async (req, res, next) => {
       user: { ...req.user },
       typeData: { ...req.typeData },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  const { body = {}, decoded = {} } = req;
+  const { id } = decoded;
+  const { password, newPassword } = body;
+
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    const confirmPassword = await verifyPassword(password, user.contrasena);
+
+    if (!confirmPassword)
+      return next({ message: 'Contraseña incorrecta', status: 400 });
+
+    const nuevaContrasena = await encryptPassword(newPassword);
+
+    const result = await prisma.usuario.update({
+      where: {
+        id,
+      },
+      data: {
+        contrasena: nuevaContrasena,
+        fecha_actualizacion: new Date().toISOString(),
+      },
+    });
+    req.user = result;
+
+    res
+      .json({
+        message: 'Contraseña actualizada',
+      })
+      .status(200);
   } catch (error) {
     next(error);
   }

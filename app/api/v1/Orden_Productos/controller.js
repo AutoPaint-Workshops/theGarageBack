@@ -1,66 +1,36 @@
+/* eslint-disable camelcase */
 import { prisma } from "../../../database.js";
+import { transporter } from "../mailer.js";
 import { fields } from "./model.js";
 import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
 import { mercadopagoCreateOrder } from "../mercadopago.config.js";
-/*
-export const create = async (req, res, next) => {
-  const { body = {}, decoded } = req;
-  const { ordenProductos, detallesOrdenProductos } = body;
-  const { idType } = decoded;
-  let result;
-  const detallesImprmir = [];
-  ordenProductos.id_cliente = idType;
-  try {
-    await prisma.$transaction(async (transaction) => {
-      // Inserta la factura
-      result = await transaction.orden_Productos.create({
-        data: ordenProductos,
-      });
-
-      // Inserta múltiples detalles de factura
-
-      await Promise.all(
-        detallesOrdenProductos.map(async (detalle) => {
-          const resultDetalle =
-            await transaction.detalle_Orden_Productos.create({
-              data: {
-                id_orden_productos: result.id,
-                ...detalle,
-              },
-            });
-
-          detallesImprmir.push(resultDetalle);
-        }),
-      );
-    });
-
-    res.status(201);
-    res.json({
-      data: {
-        orden: result,
-        detalle: detallesImprmir,
-      },
-    });
-  } catch (error) {
-    console.error('Error en la transacción:', error);
-    next(error);
-  }
-};*/
+import { getAll, getAllAdmin, updateStock } from "./utils.js";
+import _ from "lodash";
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
   const { ordenProductos, detallesOrdenProductos } = body;
   const { idType } = decoded;
+
   let result;
   let reference;
+  let resultEstado;
   const detallesImprmir = [];
   ordenProductos.id_cliente = idType;
+
   try {
     await prisma.$transaction(async (transaction) => {
       // Inserta la factura
       result = await transaction.orden_Productos.create({
         data: ordenProductos,
       });
+      resultEstado = await transaction.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: result.id,
+          estado: "Creado",
+        },
+      });
+
       reference = result.id;
       await Promise.all(
         detallesOrdenProductos.map(async (detalle) => {
@@ -118,7 +88,6 @@ export const create = async (req, res, next) => {
             estado: "creado",
           },
         });
-        console.log(resultPago);
       } catch (error) {
         next(error);
       }
@@ -131,57 +100,50 @@ export const create = async (req, res, next) => {
     }
     res.status(201);
   } catch (error) {
-    console.error("Error en la transacción:", error);
     next(error);
   }
 };
 
 export const all = async (req, res, next) => {
-  const { query } = req;
+  const { query = {}, decoded } = req;
+  const { id, idType, userType } = decoded;
+
   const { offset, limit } = parsePaginationParams(query);
-  const { orderBy, direction } = parseOrderParams({
+  const { orderBy, direction, date } = parseOrderParams({
     fields,
     ...query,
   });
 
   try {
-    const [result, total] = await Promise.all([
-      prisma.orden_Productos.findMany({
-        skip: offset,
-        take: limit,
-        orderBy: {
-          [orderBy]: direction,
-        },
-        include: {
-          cliente: {
-            select: {
-              nombre_completo: true,
-            },
-          },
-        },
-        include: {
-          detalle_orden_productos: {
-            select: {
-              id_producto: true,
-              cantidad: true,
-              precio_unitario: true,
-            },
-          },
-        },
-      }),
-      prisma.orden_Productos.count(),
-    ]);
-
-    res.json({
-      data: result,
-      meta: {
-        limit,
+    if (userType === "Administrador") {
+      const { data, meta } = await getAllAdmin(
         offset,
-        total,
+        limit,
         orderBy,
         direction,
-      },
-    });
+        date
+      );
+
+      res.json({
+        data,
+        meta,
+      });
+    } else {
+      const { data, meta } = await getAll(
+        offset,
+        limit,
+        orderBy,
+        direction,
+        date,
+        idType,
+        userType
+      );
+
+      res.json({
+        data,
+        meta,
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -195,7 +157,11 @@ export const id = async (req, res, next) => {
         id: params.id,
       },
       include: {
+        estado: true,
         detalle_orden_productos: true,
+        _count: {
+          select: { estado: true },
+        },
       },
     });
 
@@ -214,42 +180,171 @@ export const read = async (req, res, next) => {
 };
 
 export const update = async (req, res, next) => {
-  const { body = {}, params = {} } = req;
+  const { body = {}, params = {}, decoded = {} } = req;
   const { id } = params;
+  const { id: userId, userType } = decoded;
+  const { _count, estado } = req.result;
 
-  try {
-    const result = await prisma.orden_Productos.update({
+  let emailCliente = null;
+  let emailEmpresa = null;
+
+  if (userType === "Cliente") {
+    emailCliente = await prisma.usuario.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        correo: true,
+      },
+    });
+
+    emailEmpresa = await prisma.orden_Productos.findUnique({
       where: {
         id,
       },
-      data: {
-        ...body,
+      select: {
+        no_orden: true,
+        empresa: {
+          select: {
+            usuario: {
+              select: {
+                correo: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  if (userType === "Empresa") {
+    emailEmpresa = await prisma.usuario.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        correo: true,
       },
     });
 
-    res.json({
-      data: result,
+    emailCliente = await prisma.orden_Productos.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        no_orden: true,
+        cliente: {
+          select: {
+            usuario: {
+              select: {
+                correo: true,
+              },
+            },
+          },
+        },
+      },
     });
-  } catch (error) {
-    next(error);
+  }
+
+  let nuevoEstado = null;
+
+  switch (_count.estado) {
+    case 4:
+      res.json({
+        message:
+          "No se pudo realizar el cambio de estado, la orden ya se encuentra entregada",
+        status: 400,
+      });
+      break;
+    case 3:
+      if (estado[2].estado === "Enviada") {
+        nuevoEstado = "Entregada";
+        await transporter.sendMail({
+          from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+          to: emailCliente.cliente.usuario.correo,
+          subject: `Tu orden #${emailCliente.no_orden} ha sido entregada`,
+          text: `Gracias por dejarnos ayudarte en tus compras, para consultar los detalles de la orden ingresa a nuestra plataforma, en la seccion de ordenes de tu perfil`,
+          html: `Gracias por dejarnos ayudarte en tus compras, para consultar los detalles de la orden ingresa a nuestra plataforma, en la seccion de ordenes de tu perfil</p>`,
+        });
+      } else {
+        res.status(400).json({
+          message:
+            "No se pudo realizar el cambio de estado, la orden se encuentra cancelada",
+          status: 400,
+        });
+      }
+      break;
+    case 2:
+      if (body.estado === "Enviada") {
+        nuevoEstado = "Enviada";
+        await transporter.sendMail({
+          from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+          to: emailCliente.cliente.usuario.correo,
+          subject: `Tu orden #${emailCliente.no_orden} ha sido enviada`,
+          text: `Gracias por dejarnos ayudarte en tus compras,
+          Detalles de la orden:
+          ${body.mensaje}`,
+          html: `Gracias por dejarnos ayudarte en tus compras,
+          Detalles de la orden:
+          ${body.mensaje}</p>`,
+        });
+      } else {
+        nuevoEstado = "Cancelada";
+        if (userType === "Cliente") {
+          await transporter.sendMail({
+            from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+            to: emailEmpresa.empresa.usuario.correo,
+            subject: `La orden #${emailEmpresa.no_orden} ha sido cancelada`,
+            text: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}`,
+            html: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}</p>`,
+          });
+        } else {
+          await transporter.sendMail({
+            from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+            to: emailCliente.cliente.usuario.correo,
+            subject: `La orden #${emailCliente.no_orden} ha sido cancelada`,
+            text: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}`,
+            html: `Lamentamos que se haya cancelado la orden,
+            Detalles de la cancelación:
+            ${body.mensaje}</p>`,
+          });
+        }
+      }
+      break;
+  }
+
+  if (nuevoEstado === "Cancelada") {
+    updateStock(id, "add");
+  }
+
+  if (nuevoEstado !== null) {
+    try {
+      const result = await prisma.estados_Orden_Productos.create({
+        data: {
+          id_orden_productos: id,
+          estado: nuevoEstado,
+        },
+      });
+
+      return res.status(200).json({
+        message: "Estado actualizado",
+        data: result,
+        status: 200,
+      });
+    } catch (error) {
+      next({
+        status: 400,
+        message: "No se pudo realizar el cambio de estado, verifique la orden",
+      });
+    }
   }
 };
-/*
-export const remove = async (req, res) => {
-  const { params = {} } = req;
-  const { id } = params;
-
-  try {
-    await prisma.orden_Productos.delete({
-      where: { id },
-    });
-
-    res.status(204);
-    res.end();
-  } catch (error) {
-    next(error);
-  }
-};*/
 
 export const createOrder = async (req, res, next) => {
   const elementos = req.result.detalle_orden_productos;
@@ -285,6 +380,34 @@ export const createOrder = async (req, res, next) => {
     const orden = await mercadopagoCreateOrder(resultItems);
 
     res.json(orden);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getOrdersProductsRatings = async (req, res, next) => {
+  const { decoded, body = {} } = req;
+  const { idType } = decoded;
+  const { orderId } = body;
+
+  try {
+    const result = await prisma.detalle_Orden_Productos.findMany({
+      where: {
+        id_orden_productos: orderId,
+      },
+      include: {
+        producto: {
+          include: {
+            valoraciones: {
+              where: {
+                id_cliente: idType,
+              },
+            },
+          },
+        },
+      },
+    });
+    res.json(result).status(200);
   } catch (error) {
     next(error);
   }

@@ -113,7 +113,7 @@ export const resendEmail = async (req, res, next) => {
 
 export const signup = async (req, res, next) => {
   const { body = {}, tipo } = req;
-  const { data } = body;
+  const { data: bodyData } = body;
 
   const photoReq = req.files
     ? req.files.filter((file) => file.mimetype === 'image/jpeg')
@@ -122,78 +122,75 @@ export const signup = async (req, res, next) => {
     ? req.files.filter((file) => file.mimetype === 'application/pdf')
     : [];
 
-  const signUpBody = JSON.parse(data);
+  const signUpBody = JSON.parse(bodyData);
+
+  const { success, data, error } = await validateCreate(signUpBody, tipo);
+  if (!success) {
+    return next({
+      message:
+        'Los datos ingresados en el formulario no son correctos, vuelva a intentarlo',
+      status: 400,
+      error,
+    });
+  }
+
+  const { userData, userTypeData } = data;
+  const password = await encryptPassword(data.userData.contrasena);
+  const foto = await urlFoto(photoReq);
+  const camaraComercio = await urlDocument(pdfReq);
 
   try {
-    const { success, data, error } = await validateCreate(signUpBody, tipo);
-    if (!success) {
-      return next({
-        error,
-      });
-    }
-
-    const { userData, userTypeData } = data;
-    const password = await encryptPassword(data.userData.contrasena);
-    const foto = await urlFoto(photoReq);
-    const camaraComercio = await urlDocument(pdfReq);
-
-    const userResult = await prisma.usuario.create({
-      data: {
-        ...userData,
-        url_foto: foto,
-        estatus: 'Confirmacion',
-        contrasena: password,
-      },
-    });
-
-    const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
-    const token = signToken({ correo, tipoUsuario });
-
-    await transporter.sendMail({
-      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
-      to: correo,
-      subject: 'Codigo de autenticación',
-      text: 'Tu usuario se ha creado satisfactoriamente',
-      html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
-    });
-
-    if (tipo === 'cliente') {
-      await prisma.cliente.create({
+    await prisma.$transaction(async (transaction) => {
+      const userResult = await transaction.usuario.create({
         data: {
-          id_usuario: userID,
-          ...userTypeData,
+          ...userData,
+          url_foto: foto,
+          estatus: 'Confirmacion',
+          contrasena: password,
         },
       });
-      res.json({
-        message:
-          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
-      });
-    }
 
-    if (tipo === 'empresa') {
-      await prisma.empresa.create({
-        data: {
-          id_usuario: userID,
-          ...userTypeData,
-          camara_comercio: camaraComercio,
-        },
-      });
-      res.json({
-        message:
-          'Solicitud de creación recibida, revisa tu correo para confirmar tu cuenta',
-      });
-    }
+      const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
+      const token = signToken({ correo, tipoUsuario });
 
-    if (tipo === 'administrador') {
-      res.json({
-        message:
-          'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta',
+      await transporter.sendMail({
+        from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+        to: correo,
+        subject: 'Codigo de autenticación',
+        text: 'Tu usuario se ha creado satisfactoriamente',
+        html: `<p>Para confirmar tu correo porfavor ingresa al siguiente enlace ${process.env.WEB_URL}/activacion/${token} </p>`,
       });
-    }
-    res.status(201);
+
+      if (tipo === 'cliente') {
+        await transaction.cliente.create({
+          data: {
+            id_usuario: userID,
+            ...userTypeData,
+          },
+        });
+      }
+
+      if (tipo === 'empresa') {
+        const prueba = await transaction.empresa.create({
+          data: {
+            id_usuario: userID,
+            ...userTypeData,
+            camara_comercio: camaraComercio,
+          },
+        });
+      }
+
+      const message =
+        tipo !== 'empresa'
+          ? 'Usuario creado satisfactoriamente, revisa tu correo para confirmar tu cuenta'
+          : 'Usuario creado satisfactoriamente, espera a que un administrador confirme tu cuenta';
+
+      res.status(201).json({ message });
+    });
   } catch (error) {
     next({
-      message: 'No se pudo crear el usuario, intentelo mas tarde',
+      message:
+        'No se pudo crear el usuario, el correo, documento o nit ya se encuentra registrado en el sistema',
       status: 400,
       error,
     });
@@ -222,10 +219,21 @@ export const signin = async (req, res, next) => {
       },
     });
 
-    if (user === null) {
+    if (!user) {
       return next({
         message: 'Correo o contraseña invalidos',
-        status: 401,
+        status: 403,
+      });
+    }
+
+    if (user.estatus !== 'Activo') {
+      const message =
+        user.estatus === 'Confirmacion'
+          ? 'Correo no confirmado'
+          : 'Usuario no activo o bloqueado';
+      return next({
+        message,
+        status: 403,
       });
     }
 
@@ -234,7 +242,7 @@ export const signin = async (req, res, next) => {
     if (!confirmPassword) {
       return next({
         message: 'Correo o contraseña invalidos',
-        status: 401,
+        status: 403,
       });
     }
 
@@ -374,5 +382,36 @@ export const updatePassword = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+  }
+};
+
+export const testActivationLink = async (req, res, next) => {
+  const { body } = req;
+  const { correo } = body;
+
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        correo,
+        estatus: 'Confirmacion',
+      },
+    });
+
+    if (!user) {
+      return next({
+        message: 'El email no se encuentra registrado',
+        status: 400,
+      });
+    }
+
+    const { tipo_usuario: tipoUsuario } = user;
+    const token = signToken({ correo, tipoUsuario });
+
+    res.status(200);
+    res.json({
+      activation_url: `${process.env.WEB_URL}/activacion/${token}`,
+    });
+  } catch (error) {
+    return next({ error });
   }
 };
