@@ -16,6 +16,7 @@ export const emailStructure = ({
   token = {},
   numeroOrden = {},
   mensaje = {},
+  respuesta = {},
 }) => {
   if (asunto === 'confirmacion') {
     return {
@@ -143,6 +144,33 @@ export const emailStructure = ({
                             <p>El motivo es el siguiente:</p>
                             <p>${mensaje}</p>
                             <p>Lamentamos que se haya cancelado esta orden.</p>
+                            <p>Atentamente,</p>
+                            <p>El equipo de THE GARAGE</p>
+                        </body>
+                      </td>
+                    </tr>
+                  </table>
+        `,
+    };
+  }
+
+  if (asunto === 'solucion') {
+    return {
+      from: `THE GARAGE APP ${process.env.EMAIL_SENDER}`,
+      to: correo,
+      subject: `Respuesta a la solicitud realizada`,
+      text: `Se le ha dado respuesta a su consulta`,
+      html: `   <table style="width: 100%; height: 100%; background-color: #f2f2f2; padding: 0; margin: 0;">
+                    <tr>
+                      <td align="center" valign="top">
+                        <img src="https://res.cloudinary.com/db9nfgjqr/image/upload/v1698162482/site_images/the_garage_logo.png" alt="logo" border="0" width="200">
+                      </td>
+                      <td align="center" valign="top">
+                        <body>
+                            <h1>¡Gracias por comunicarte con nosotros!</h1>
+                            <p>En respuesta a la solicitud realizada, nuestro equipo te hace llegar el siguiente mensaje</p>
+                            <p>Respuesta de la solicitud:</p>
+                            <p>${respuesta}</p>
                             <p>Atentamente,</p>
                             <p>El equipo de THE GARAGE</p>
                         </body>
