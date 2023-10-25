@@ -146,8 +146,10 @@ export const signup = async (req, res, next) => {
 
       const { correo, id: userID, tipo_usuario: tipoUsuario } = userResult;
       const token = signToken({ correo, tipoUsuario });
+
       const mail = emailStructure({ asunto: 'confirmacion', correo, token });
       await transporter.sendMail(mail);
+
 
       if (tipo === 'cliente') {
         await transaction.cliente.create({

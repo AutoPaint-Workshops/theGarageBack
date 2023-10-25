@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+
 import { router as products } from "./productos/routes.js";
 import { router as ratings } from "./valoraciones/routes.js";
 import { router as photos } from "./fotos/routes.js";
