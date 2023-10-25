@@ -34,6 +34,8 @@ model Cliente {
   valoraciones     Valoracion[]
   orden_Productos  Orden_Productos[]
   pagos            Pagos[]
+  conversaciones   Conversacion[]
+  mensajes         Mensaje[]
 }
 
 model Empresa {
@@ -53,6 +55,10 @@ model Empresa {
   usuario                        Usuario?          @relation(fields: [id_usuario], references: [id], onDelete: Cascade)
   productos                      Producto[]
   orden_Productos                Orden_Productos[]
+
+  conversaciones                 Conversacion[]
+  mensaje                        Mensaje[]
+
 }
 
 model Categoria {
@@ -115,6 +121,7 @@ model Orden_Productos {
   detalle_orden_productos Detalle_Orden_Productos[]
   estado                  Estados_Orden_Productos[]
   pagos                   Pagos[]
+  conversacion            Conversacion?
 }
 
 model Estados_Orden_Productos {
@@ -136,13 +143,49 @@ model Detalle_Orden_Productos {
 }
 
 model Pagos {
-  id                 String  @id @default(uuid()) @db.Uuid
-  id_cliente         String  @db.Uuid
-  id_orden_productos String? @unique @db.Uuid
-  metodo_pago        String? @db.VarChar(100)
-  id_pago_mp         String? @db.Text
+
+  id                 String           @id @default(uuid()) @db.Uuid
+  id_cliente         String           @db.Uuid
+  id_orden_productos String?          @unique @db.Uuid
+  metodo_pago        String?          @db.VarChar(100)
+  id_pago_mp         String?          @db.Text
   estado             String?
   url_pago           String?
-  cliente         Cliente          @relation(fields: [id_cliente], references: [id])
-  orden_productos Orden_Productos? @relation(fields: [id_orden_productos], references: [id])
+  cliente            Cliente          @relation(fields: [id_cliente], references: [id])
+  orden_productos    Orden_Productos? @relation(fields: [id_orden_productos], references: [id])
+}
+
+model Mensaje {
+  id             String   @id @default(uuid()) @db.Uuid
+  mensaje        String   @db.Text
+  fecha_creacion DateTime @default(now())
+
+  cliente        Cliente?      @relation(fields: [clienteId], references: [id])
+  clienteId      String?       @db.Uuid
+  empresa        Empresa?      @relation(fields: [empresaId], references: [id])
+  empresaId      String?       @db.Uuid
+  conversacion   Conversacion? @relation(fields: [conversacionId], references: [id])
+  conversacionId String?       @db.Uuid
+}
+
+model Conversacion {
+  id                String           @id @default(uuid()) @db.Uuid
+  mensajes          Mensaje[]
+  orden_ProductosId String?          @unique @db.Uuid
+  orden_productos   Orden_Productos? @relation(fields: [orden_ProductosId], references: [id])
+  cliente           Cliente?         @relation(fields: [clienteId], references: [id])
+  clienteId         String?          @db.Uuid
+  empresa           Empresa?         @relation(fields: [empresaId], references: [id])
+  empresaId         String?          @db.Uuid
+}
+
+model Consultas {
+  id                String   @id @default(uuid()) @db.Uuid
+  fecha_consulta    DateTime @default(now()) @db.Timestamp
+  consulta          String   @db.Text
+  respuesta         String?   @db.Text
+  correo_contacto   String   @db.VarChar(255)
+  nombre_contacto   String   @db.VarChar(255)
+  estado_consulta   String   @db.VarChar(20)
+
 }
