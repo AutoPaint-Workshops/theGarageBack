@@ -146,3 +146,13 @@ model Pagos {
   cliente         Cliente          @relation(fields: [id_cliente], references: [id])
   orden_productos Orden_Productos? @relation(fields: [id_orden_productos], references: [id])
 }
+
+model Consultas {
+  id                String   @id @default(uuid()) @db.Uuid
+  fecha_consulta    DateTime @default(now()) @db.Timestamp
+  consulta          String   @db.Text
+  respuesta         String?   @db.Text
+  correo_contacto   String   @db.VarChar(255)
+  nombre_contacto   String   @db.VarChar(255)
+  estado_consulta   String   @db.VarChar(20)
+}
