@@ -132,14 +132,6 @@ model Estados_Orden_Productos {
   estados_orden_productos Orden_Productos @relation(fields: [id_orden_productos], references: [id], onDelete: Cascade)
 }
 
-model Estados_Orden_Productos {
-  id                      String          @id @default(uuid()) @db.Uuid
-  id_orden_productos      String          @db.Uuid
-  estado                  String          @db.VarChar(20)
-  fecha_estado            DateTime        @default(now()) @db.Timestamp
-  estados_orden_productos Orden_Productos @relation(fields: [id_orden_productos], references: [id], onDelete: Cascade)
-}
-
 model Detalle_Orden_Productos {
   id                 String          @id @default(uuid()) @db.Uuid
   id_orden_productos String          @db.Uuid
