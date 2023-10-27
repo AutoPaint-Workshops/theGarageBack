@@ -25,8 +25,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("mensaje", (payload) => {
-    console.log(payload);
     io.emit("mensaje", payload);
+  });
+  socket.on("notificacion", (payload) => {
+    io.emit("notificacion", payload);
   });
 });
 
