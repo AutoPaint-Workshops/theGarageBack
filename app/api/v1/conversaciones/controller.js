@@ -106,9 +106,11 @@ export async function get(req, res, next) {
         cliente: {
           select: {
             nombre_completo: true,
+
             usuario: {
               select: {
                 url_foto: true,
+                correo: true,
               },
             },
           },
@@ -119,6 +121,7 @@ export async function get(req, res, next) {
             usuario: {
               select: {
                 url_foto: true,
+                correo: true,
               },
             },
           },
@@ -128,6 +131,34 @@ export async function get(req, res, next) {
             fecha_creacion: "asc",
           },
         },
+
+        orden_productos: {
+          select: {
+            no_orden: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      data: conversacion,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function update(req, res, next) {
+  const { body = {}, params = {} } = req;
+  const { id: conversationId } = params;
+
+  try {
+    const conversacion = await prisma.conversacion.update({
+      where: {
+        id: conversationId,
+      },
+      data: {
+        ...body,
       },
     });
 
