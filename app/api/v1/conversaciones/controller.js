@@ -43,6 +43,11 @@ export async function list(req, res, next) {
         ],
       },
       include: {
+        orden_productos: {
+          select: {
+            no_orden: true,
+          },
+        },
         cliente: {
           select: {
             id: true,
