@@ -95,7 +95,7 @@ export const create = async (req, res, next) => {
         valoraciones: true,
       },
     });
-    res.status(201);
+    res.status(204);
     res.json({
       data: result,
     });
