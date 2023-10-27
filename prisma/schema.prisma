@@ -56,9 +56,8 @@ model Empresa {
   productos                      Producto[]
   orden_Productos                Orden_Productos[]
 
-  conversaciones                 Conversacion[]
-  mensaje                        Mensaje[]
-
+  conversaciones Conversacion[]
+  mensaje        Mensaje[]
 }
 
 model Categoria {
@@ -88,7 +87,6 @@ model Producto {
   valoraciones             Valoracion[]
   detalles_orden_productos Detalle_Orden_Productos[]
 }
-
 
 model Foto {
   id             String    @id @default(uuid()) @db.Uuid
@@ -143,7 +141,6 @@ model Detalle_Orden_Productos {
 }
 
 model Pagos {
-
   id                 String           @id @default(uuid()) @db.Uuid
   id_cliente         String           @db.Uuid
   id_orden_productos String?          @unique @db.Uuid
@@ -177,15 +174,15 @@ model Conversacion {
   clienteId         String?          @db.Uuid
   empresa           Empresa?         @relation(fields: [empresaId], references: [id])
   empresaId         String?          @db.Uuid
+  estado            Boolean?         @default(true)
 }
 
 model Consultas {
-  id                String   @id @default(uuid()) @db.Uuid
-  fecha_consulta    DateTime @default(now()) @db.Timestamp
-  consulta          String   @db.Text
-  respuesta         String?   @db.Text
-  correo_contacto   String   @db.VarChar(255)
-  nombre_contacto   String   @db.VarChar(255)
-  estado_consulta   String   @db.VarChar(20)
-
+  id              String   @id @default(uuid()) @db.Uuid
+  fecha_consulta  DateTime @default(now()) @db.Timestamp
+  consulta        String   @db.Text
+  respuesta       String?  @db.Text
+  correo_contacto String   @db.VarChar(255)
+  nombre_contacto String   @db.VarChar(255)
+  estado_consulta String   @db.VarChar(20)
 }
