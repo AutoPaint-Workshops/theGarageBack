@@ -150,7 +150,6 @@ export const signup = async (req, res, next) => {
       const mail = emailStructure({ asunto: 'confirmacion', correo, token });
       await transporter.sendMail(mail);
 
-
       if (tipo === 'cliente') {
         await transaction.cliente.create({
           data: {
@@ -211,7 +210,7 @@ export const signin = async (req, res, next) => {
 
     if (!user) {
       return next({
-        message: 'Correo o contraseña invalidos',
+        message: 'Correo o contraseña incorrectos',
         status: 403,
       });
     }
@@ -231,7 +230,7 @@ export const signin = async (req, res, next) => {
 
     if (!confirmPassword) {
       return next({
-        message: 'Correo o contraseña invalidos',
+        message: 'Correo o contraseña incorrectos',
         status: 403,
       });
     }
