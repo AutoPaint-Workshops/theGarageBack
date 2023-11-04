@@ -248,7 +248,7 @@ export const myProducts = async (req, res, next) => {
         skip: offset,
         take: limit,
         orderBy: {
-          [orderBy]: direction,
+          fecha_creacion: direction,
         },
         include: {
           fotos: true,
