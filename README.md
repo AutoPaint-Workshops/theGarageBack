@@ -3,6 +3,8 @@
 ## Descripción
 Este proyecto es el back-end de la aplicación The Garage, proporcionando una API para la gestión eficiente de productos y transacciones en el mercado automotriz.
 
+Repositorio Front-end :https://github.com/ManuelOrtegaR/the-garage.git
+
 ## Requisitos Previos
 Antes de comenzar con la instalación, asegúrate de tener instalado:
 
@@ -88,6 +90,9 @@ TOKEN_EXPIRES="1h"
 API_URL="http://localhost:3000/api"
 # URL base de la API
 
+API_HTTPS_URL="URL_proporcionada_ngrok"
+# URL que simula el HTTPS, para la recepcion de respuestas del webhook de mercadopago
+
 CLOUD_NAME="cloudinary_ejemplo"
 API_KEY="123456789012345"
 API_SECRET="secreto_cloudinary_ejemplo"
@@ -112,10 +117,14 @@ Estos son valores de ejemplo y debes reemplazarlos con tus propias credenciales 
 
 
 4. **Ejecutar Migraciones de la Base de Datos:**
-   ```bash
-   npx prisma db push
-   ```
-
+```bash
+npx prisma db push
+```
+6. **Ejecutar en la terminal ngrok para el webhook de mercado pago:**   
+   
+```bash 
+.\ngrok.exe http 3000
+ ```
 ## Uso
 
 ### Modo de Desarrollo
