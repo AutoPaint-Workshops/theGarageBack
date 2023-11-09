@@ -75,7 +75,7 @@ PORT=3000
 DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/ejemploBD"
 # Para un DBMS local
 
-DATABASE_URL="postgresql://usuario:contraseña@nombre_del_contenedor:5432/ejemploBD"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5454/TheGarageDB"
 ## Para un DBMS en Docker
 
 
