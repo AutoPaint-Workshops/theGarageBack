@@ -147,3 +147,5 @@ Genera y muestra el informe de cobertura.
 npm run e2e
 ```
 Inicia las pruebas end-to-end.
+# 5. Modelo de datos
+![Modeloer](https://github.com/AutoPaint-Workshops/theGarageBack/blob/main/diagrama.png)
