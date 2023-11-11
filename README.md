@@ -66,7 +66,7 @@ npm install
 ```
 
 3. **Configurar Variables de Entorno:**
-   - Crea un archivo `.env` en la raíz del proyecto.
+   - Crea los archivos `.env` y `.env.test` en la raíz del proyecto.
    - Configura las variables de entorno según tus necesidades. 
 
 
