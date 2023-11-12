@@ -18,5 +18,9 @@ export const validateRespuesta = async (data) => {
   return RespuestaSchema.safeParseAsync(data);
 };
 
-export const consultaFields = [...Object.keys(ConsultaSchema.shape)];
+export const consultaFields = [
+  ...Object.keys(ConsultaSchema.shape),
+  'id',
+  'fecha_consulta',
+];
 export const respuestaFields = [...Object.keys(RespuestaSchema.shape)];
