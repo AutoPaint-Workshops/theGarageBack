@@ -1,13 +1,12 @@
 /* eslint-disable camelcase */
-
-import { prisma } from '../../../database.js';
-import { emailStructure, transporter } from '../mailer.js';
-import { fields } from './model.js';
-import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
-import { mercadopagoCreateOrder } from '../mercadopago.config.js';
-import { getAll, getAllAdmin, updateStock } from './utils.js';
 import _ from 'lodash';
 
+import { prisma } from '../../../database.js';
+import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
+import { emailStructure, transporter } from '../mailer.js';
+import { mercadopagoCreateOrder } from '../mercadopago.config.js';
+import { fields } from './model.js';
+import { getAll, getAllAdmin, updateStock } from './utils.js';
 
 export const create = async (req, res, next) => {
   const { body = {}, decoded } = req;
@@ -31,7 +30,6 @@ export const create = async (req, res, next) => {
           id_orden_productos: result.id,
 
           estado: 'Creado',
-
         },
       });
 
@@ -119,9 +117,7 @@ export const all = async (req, res, next) => {
   });
 
   try {
-
     if (userType === 'Administrador') {
-
       const { data, meta } = await getAllAdmin(
         offset,
         limit,
@@ -129,7 +125,6 @@ export const all = async (req, res, next) => {
         direction,
 
         date,
-
       );
 
       res.json({
@@ -146,7 +141,6 @@ export const all = async (req, res, next) => {
         idType,
 
         userType,
-
       );
 
       res.json({
@@ -198,9 +192,7 @@ export const update = async (req, res, next) => {
   let emailCliente = null;
   let emailEmpresa = null;
 
-
   if (userType === 'Cliente') {
-
     emailCliente = await prisma.usuario.findUnique({
       where: {
         id: userId,
@@ -229,9 +221,7 @@ export const update = async (req, res, next) => {
     });
   }
 
-
   if (userType === 'Empresa') {
-
     emailEmpresa = await prisma.usuario.findUnique({
       where: {
         id: userId,
@@ -258,7 +248,6 @@ export const update = async (req, res, next) => {
         },
       },
     });
-
   }
 
   let nuevoEstado = null;
@@ -336,7 +325,6 @@ export const update = async (req, res, next) => {
     updateStock(id, 'add');
   }
 
-
   if (nuevoEstado !== null) {
     try {
       const result = await prisma.estados_Orden_Productos.create({
@@ -347,7 +335,6 @@ export const update = async (req, res, next) => {
       });
 
       return res.status(200).json({
-
         message: 'Estado actualizado',
 
         data: result,
@@ -358,7 +345,6 @@ export const update = async (req, res, next) => {
         status: 400,
 
         message: 'No se pudo realizar el cambio de estado, verifique la orden',
-
       });
     }
   }

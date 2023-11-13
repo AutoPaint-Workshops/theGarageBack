@@ -1,6 +1,7 @@
-import { hash, compare } from 'bcrypt';
-import { uploadFiles } from '../../../uploadsPhotos/uploads.js';
 import fs from 'fs';
+import { hash, compare } from 'bcrypt';
+
+import { uploadFiles } from '../../../uploadsPhotos/uploads.js';
 
 export const ifType = (tipo = 'error') => {
   if (tipo !== 'cliente' && tipo !== 'empresa' && tipo !== 'administrador')

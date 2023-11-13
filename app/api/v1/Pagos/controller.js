@@ -3,23 +3,6 @@ import { fields } from './model.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { paymentById } from '../mercadopago.config.js';
 import { updateStock } from '../Orden_Productos/utils.js';
-/*
-export const create = async (req, res, next) => {
-  const { body = {} } = req;
-
-  try {
-    const result = await prisma.Pagos.create({
-      data: body,
-    });
-
-    res.status(201);
-    res.json({
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};*/
 
 export const all = async (req, res, next) => {
   const { query } = req;
