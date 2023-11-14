@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node index",
-    "dev": "cross-env NODE_ENV=development node index",
+    "dev": "cross-env NODE_ENV=development node --watch index",
     "precoverage": "dotenv -e .env.test -- npx prisma db push",
     "coverage": "dotenv -e .env.test -- vitest --retry=2 run --coverage",
     "pretest": "dotenv -e .env.test -- npx prisma db push",
