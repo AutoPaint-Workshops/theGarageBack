@@ -1,8 +1,9 @@
-import { prisma } from "../../../database.js";
-import { ProductosSchema, fields } from "./model.js";
-import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
-import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
 import fs from "fs";
+
+import { prisma } from "../../../database.js";
+import { uploadFiles } from "../../../uploadsPhotos/uploads.js";
+import { parseOrderParams, parsePaginationParams } from "../../../utils.js";
+import { ProductosSchema, fields } from "./model.js";
 import { filtrarProductosPorMediana } from "./utils.js";
 
 /**

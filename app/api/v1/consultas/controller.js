@@ -2,9 +2,9 @@ import { prisma } from '../../../database.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { emailStructure, transporter } from '../mailer.js';
 import {
+  consultaFields,
   validateConsulta,
   validateRespuesta,
-  consultaFields,
 } from './model.js';
 
 export const createRequest = async (req, res, next) => {

@@ -8,12 +8,12 @@ import {
   validateSignIn,
 } from './model.js';
 import {
+  encryptPassword,
   ifType,
   isActive,
-  urlFoto,
-  encryptPassword,
-  verifyPassword,
   urlDocument,
+  urlFoto,
+  verifyPassword,
 } from './utils.js';
 
 export const tipo = async (req, res, next) => {

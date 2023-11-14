@@ -1,9 +1,9 @@
 import merge from 'lodash/merge.js';
+import ordenProducto from './Orden_Productos/docs.json' assert { type: 'json' };
+import autenticacion from './auth/docs.json' assert { type: 'json' };
+import perfil from './perfil/docs.json' assert { type: 'json' };
 import productos from './productos/docs.json' assert { type: 'json' };
 import valoraciones from './valoraciones/docs.json' assert { type: 'json' };
-import autenticacion from './auth/docs.json' assert { type: 'json' };
-import ordenProducto from './Orden_Productos/docs.json' assert { type: 'json' };
-import perfil from './perfil/docs.json' assert { type: 'json' };
 
 export const swaggerDefinition = merge(
   {

@@ -1,5 +1,6 @@
-import { Router } from "express";
-import * as controller from "./controller.js";
+import { Router } from 'express';
+
+import * as controller from './controller.js';
 
 // eslint-disable-next-line new-cap
 export const router = Router({ mergeParams: true });
@@ -11,11 +12,11 @@ export const router = Router({ mergeParams: true });
  * /api/v1/phostos/:id DELETE  - DELETE
  */
 
-router.route("/").post(controller.create).get(controller.all);
+router.route('/').post(controller.create).get(controller.all);
 
-router.param("id", controller.id);
+router.param('id', controller.id);
 router
-  .route("/:id")
+  .route('/:id')
   .get(controller.read)
   .put(controller.update)
   .patch(controller.update)
