@@ -280,6 +280,17 @@
           }
         }
       }
+    },
+    "/cambiarcontrasena": {
+      "put": {
+        "summary": "Actualizar contraseña de usuario",
+        "tags": ["Perfil"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {

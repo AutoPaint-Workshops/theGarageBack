@@ -1,0 +1,55 @@
+{
+  "paths": {
+    "/conversaciones": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Obtener todas las conversaciones de un usuario",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Crear una conversacion",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/conversaciones/{id}": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Obtener una conversacion por id",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["Chat"],
+        "summary": "Actualizar una conversacion por id",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/mensajes": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Crear un mensaje para una conversación",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  }
+}
