@@ -1,7 +1,11 @@
 import { prisma } from '../../../database.js';
 import { parseOrderParams, parsePaginationParams } from '../../../utils.js';
 import { emailStructure, transporter } from '../mailer.js';
-import { validateConsulta, validateRespuesta } from './model.js';
+import {
+  consultaFields,
+  validateConsulta,
+  validateRespuesta,
+} from './model.js';
 
 export const createRequest = async (req, res, next) => {
   const { body } = req;
@@ -34,6 +38,10 @@ export const createRequest = async (req, res, next) => {
 export const getAllRequests = async (req, res, next) => {
   const { query } = req;
   const { offset, limit } = parsePaginationParams(query);
+  const { orderBy, direction } = parseOrderParams({
+    consultaFields,
+    ...query,
+  });
 
   const { decoded } = req;
   const { userType } = decoded;
@@ -46,6 +54,9 @@ export const getAllRequests = async (req, res, next) => {
     const requests = await prisma.consultas.findMany({
       skip: offset,
       take: limit,
+      orderBy: {
+        fecha_consulta: direction,
+      },
     });
     res.status(200).json(requests);
   } catch (error) {

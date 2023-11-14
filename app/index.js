@@ -1,11 +1,11 @@
-import express from 'express';
+import { Prisma } from '@prisma/client';
 import cors from 'cors';
+import express from 'express';
 import swaggerUI from 'swagger-ui-express';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 
-import { router as api } from './api/v1/index.js';
 import { swaggerDefinition } from './api/v1/docs.js';
+import { router as api } from './api/v1/index.js';
 
 export const app = express();
 

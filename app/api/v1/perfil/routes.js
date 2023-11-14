@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import * as controller from './controller.js';
 import { auth } from '../auth.js';
 import { uploads } from '../../../uploadsPhotos/uploads.js';

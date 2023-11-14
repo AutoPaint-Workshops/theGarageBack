@@ -1,214 +1,192 @@
 {
-  "paths":{
-    "/{resourceType}/{resourceId}/valoraciones":{
-      "get":{
-        "tags":["Valoraciones"],
-        "description": "Obtener todas las valoraciones de un producto o servicio en especifico   ",
-        "parameters":[
+  "paths": {
+    "/{resourceType}/{resourceId}/valoraciones": {
+      "get": {
+        "tags": ["Valoraciones"],
+        "summary": "Obtener todas las valoraciones de un producto en especifico",
+        "description": "Obtener todas las valoraciones de un producto en especifico",
+        "parameters": [
           {
             "in": "path",
             "name": "resourceType",
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["productos", "servicios"]
+              "enum": ["productos"]
             },
-            "description": "Tipo de recurso (productos o servicios)"
+            "description": "Tipo de recurso (producto)"
           },
-          
           {
-            "in":"path",
-            "name":"resourceId",
-            "required":true,
-            "schema":{
-              "type":"string"
+            "in": "path",
+            "name": "resourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
             },
-            "description":"ID del producto o ID del servicio"
+            "description": "ID del producto"
           }
         ],
-        "responses":{
-          "200":{
-            "content":{
-              "application/json":{
-
-                "schema":{
-                  "type":"object",
-                  "properties":{
-                    "data":{
-                      "type":"array",
-                      "items":{
-                        "$ref":"#/components/schemas/Valoracion"
-                        
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Valoracion"
                       }
                     }
                   }
-                 
-                  }
-
+                }
               }
             }
           }
         }
-
-
       }
-
     },
-    "/{resoruceType}/{resourceId}/valoraciones":{
-      "post":{
-        "tags":["Valoraciones"],
-        "security":[
+    "/{resoruceType}/{resourceId}/valoraciones": {
+      "post": {
+        "tags": ["Valoraciones"],
+        "summary": "Crear una valoracion para un producto en especifico",
+        "security": [
           {
-            "BearerAuth":[]
+            "BearerAuth": []
           }
         ],
-        "description": "Crear una valoracion para un producto o servicio en especifico   ",
-        "parameters":[
+        "description": "Crear una valoracion para un producto en especifico",
+        "parameters": [
           {
             "in": "path",
             "name": "resourceType",
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["productos", "servicios"]
+              "enum": ["productos"]
             },
-            "description": "Tipo de recurso (productos o servicios)"
+            "description": "Tipo de recurso (producto)"
           },
-          
+
           {
-            "in":"path",
-            "name":"resourceId",
-            "required":true,
-            "schema":{
-              "type":"string"
+            "in": "path",
+            "name": "resourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
             },
-            "description":"ID del producto o ID del servicio"
+            "description": "ID del producto"
           }
         ],
-        "requestBody":{
-          "content":{
-            "application/json":{
-              "schema":{
-                "$ref":"#/components/schemas/Valoracion-Create"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Valoracion-Create"
               }
             }
           }
         },
-        "responses":{
-          "200":{
-            "content":{
-              "application/json":{
-
-                "schema":{
-                  "type":"object",
-                  "properties":{
-                    "data":{
-                      "$ref":"#/components/schemas/Valoracion"
-                        
-                      
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Valoracion"
                     }
                   }
-                 
-                  }
-
+                }
               }
             }
           }
         }
+      }
     }
-  }
   },
 
-  "components":{
-    "schemas":{
-      "Valoracion":{
-        "type":"object",
-            "properties":{
-              "id":{
-                "type":"string",
-                "description":"El id de la Valoracion de un producto en especifico",
-                "example":"321d99a0-3a3f-44ad-b807-6f8413e03ac0"
-              },
-              "calificacion":{
-                "type":"number",
-                "description":"La calificacion de un producto o Servicio",
-                "example":5
-                
-              },
-              "comentario":{
-                "type":"string",
-                "description":"El comentario de un producto o Servicio",
-                "example":"Excelente producto"
-              },
-              "cliente":{
-                "type":"object",
-                "properties":{
-                  "nombre":{
-                    "type":"string",
-                    "description":"El nombre del cliente",
-                    "example":"Juan"
-                  }
-                }
-              },
-
-       
-
-
-              "producto":{
-                "type":"object",
-                "description":"El producto o servicio que se esta valorando, puede ser NULL si el resoruceType es servicio",
-                "properties":{
-                  "nombre":{
-                    "type":"string",
-                    "description":"El nombre del producto - Puede ser Null si el reso",
-                    "example":"Caja Automatica para Toyota Corolla 2010"
-                  }
-                }
-              },
-              "servicio":{
-                "type":"object",
-                "description":"El producto o servicio que se esta valorando, puede ser NULL si el resoruceType es producto",
-                "properties":{
-                  "nombre":{
-                    "type":"string",
-                    "description":"El nombre del servicio",
-                    "example":"Cambio de aceite"
-                  }
-                }
+  "components": {
+    "schemas": {
+      "Valoracion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "El id de la Valoracion de un producto en especifico",
+            "example": "321d99a0-3a3f-44ad-b807-6f8413e03ac0"
+          },
+          "calificacion": {
+            "type": "number",
+            "description": "La calificacion de un producto o Servicio",
+            "example": 5
+          },
+          "comentario": {
+            "type": "string",
+            "description": "El comentario de un producto o Servicio",
+            "example": "Excelente producto"
+          },
+          "cliente": {
+            "type": "object",
+            "properties": {
+              "nombre": {
+                "type": "string",
+                "description": "El nombre del cliente",
+                "example": "Juan"
               }
-
-
             }
+          },
 
-
+          "producto": {
+            "type": "object",
+            "description": "El producto o servicio que se esta valorando, puede ser NULL si el resoruceType es servicio",
+            "properties": {
+              "nombre": {
+                "type": "string",
+                "description": "El nombre del producto - Puede ser Null si el reso",
+                "example": "Caja Automatica para Toyota Corolla 2010"
+              }
+            }
+          },
+          "servicio": {
+            "type": "object",
+            "description": "El producto o servicio que se esta valorando, puede ser NULL si el resoruceType es producto",
+            "properties": {
+              "nombre": {
+                "type": "string",
+                "description": "El nombre del servicio",
+                "example": "Cambio de aceite"
+              }
+            }
+          }
+        }
       },
-      "Valoracion-Create":{
-        "type":"object",
-            "properties":{
-              "calificacion":{
-                "type":"number",
-                "description":"La calificacion de un producto o Servicio",
-                "example":5
-                
-              },
-              "comentario":{
-                "type":"string",
-                "description":"El comentario de un producto o Servicio",
-                "example":"Excelente producto"
-              }
-            }
+      "Valoracion-Create": {
+        "type": "object",
+        "properties": {
+          "calificacion": {
+            "type": "number",
+            "description": "La calificacion de un producto o Servicio",
+            "example": 5
+          },
+          "comentario": {
+            "type": "string",
+            "description": "El comentario de un producto o Servicio",
+            "example": "Excelente producto"
+          }
+        }
       }
-    
     },
-    "securitySchemes":{
-      "BearerAuth":{
-        "type":"apiKey",
-        "scheme":"bearer",
-        "bearerFormat":"JWT",
-        "in":"header",
-        "name":"Authorization"
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "in": "header",
+        "name": "Authorization"
       }
-
     }
   }
 }

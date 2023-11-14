@@ -1,0 +1,40 @@
+{
+  "paths": {
+    "/consultas": {
+      "get": {
+        "tags": ["Consultas"],
+        "summary": "Obtener todas las consultas o PQR (Solo administradores)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": ["Consultas"],
+        "summary": "Crear una consulta o PQR"
+      }
+    },
+
+    "/consultas/{id}": {
+      "get": {
+        "tags": ["Consultas"],
+        "summary": "Obtener una consulta por id",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["Consultas"],
+        "summary": "Actualizar una consulta por id",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  }
+}

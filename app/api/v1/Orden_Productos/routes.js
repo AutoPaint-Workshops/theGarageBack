@@ -24,5 +24,3 @@ router
   .get(auth, controller.read)
   .put(auth, controller.update)
   .patch(auth, controller.update);
-
-// router.route('/:id/crear_orden').post(auth, controller.createOrder);
