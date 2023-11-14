@@ -1,452 +1,409 @@
 {
-  "paths":{
-    "/productos":{
-      "get":{
-        "tags":[
-          "Productos"
+  "paths": {
+    "/productos": {
+      "get": {
+        "summary": "Obtener todos los productos",
+        "tags": ["Productos"],
+        "description": "Obtener todos los productos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un producto",
+        "tags": ["Productos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ],
-        "description":"Obtener todos los productos",
-        "responses":{
-          "200":{
-            "content":{
-              "application/json":{
-                "schema":{
-                  "type":"object",
-                  "properties":{
-                    "data":{
-                      "type":"array",
-                      "items":{
-                        "$ref":"#/components/schemas/Producto"
-                        
-                      }
-                    }
-                  }
-                 
-                  }
-                }
+        "description": "Crear un producto",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoCreate"
               }
             }
           }
         },
-        "post":{
-          "tags":[
-            "Productos"
-          ],
-          "security":[
-            {
-              "BearerAuth":[]
-            }
-          ],
-          "description":"Crear un producto",
-          "requestBody":{
-            "content":{
-              "application/json":{
-                "schema":{
-                  "$ref":"#/components/schemas/ProductoCreate"
-                  
-                  
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Producto"
+                    }
+                  }
                 }
               }
             }
           },
-          "responses":{
-            "201":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "$ref":"#/components/schemas/Producto"
-                      }
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UnauthorizedError"
                     }
                   }
                 }
               }
-            },
-            "401":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "$ref":"#/components/schemas/UnauthorizedError"
-                      }
-                    }
-                  }
-                }
-              }
-              
             }
           }
-
-
         }
-
-      
-      },
-      "/productos/{id}":{
-        "get":{
-          "description":"Obtener un producto por id",
-          "tags":[
-            "Productos"
-          ],
-          "security":[
-            {
-              "BearerAuth":[]
-            }
-          ],
-
-          "parameters":[
-            {
-              "in":"path",
-              "name":"ProductId",
-              "required":true,
-              "schema":{
-                "type":"string"
-              },
-              "description":"Id del producto"
-            }
-          ],
-          "responses":{
-            "200":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "$ref":"#/components/schemas/Producto"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-        
-        },
-        
-        "put":{
-          "tags":[
-            "Productos"
-          ],
-          "security":[
-            {
-              "BearerAuth":[]
-            }
-          ],
-          "description":"Actualizar un producto",
-          "requestBody":{
-            "content":{
-              "application/json":{
-                "schema":{
-                  "$ref":"#/components/schemas/ProductoCreate"
-                  
-                  
-                }
-              }
-            }
-          },
-          "responses":{
-            "200":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "$ref":"#/components/schemas/Producto"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-        }
-      },
-      "/productos/search/{searhTerm}":{
-        "get":{
-          "description":"Obtener un producto por Parametro de busqueda",
-          "tags":[
-            "Productos"
-          ],
-
-          "parameters":[
-            {
-              "in":"path",
-              "name":"SearchTerm",
-              "required":true,
-              "schema":{
-                "type":"string"
-              },
-              "description":"Nombre de un producto"
-            }
-          ],
-          "responses":{
-            "200":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "$ref":"#/components/schemas/Producto"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-        
-        }
-      },
-
-      "/productos/misProductos/":{
-        "get":{
-          "description":"Obtener todos los productos de una Empresa",
-          "tags":[
-            "Productos"
-          ],
-          "security":[
-            {
-              "BearerAuth":[]
-            }
-          ],
-          "responses":{
-            "200":{
-              "content":{
-                "application/json":{
-                  "schema":{
-                    "type":"object",
-                    "properties":{
-                      "data":{
-                        "type":"array",
-                        "items":{
-                          "$ref":"#/components/schemas/Producto"
-                          
-                        }
-                      }
-                    }
-                   
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-        },
-        "/productos/filter":{
-          "get":{
-            "description":"Obtener los productos de una empres filtrado por query de busqueda",
-            "tags":[
-              "Productos"
-            ],
-            "parameters":[
-              {
-                "in":"query",
-                "name":"filterCategorias",
-                "required":false,
-                "schema":{
-                  "type":"string"
-                },
-                "description":"nombre o nombres de categorias separados por (-)"
-              },
-              {
-                "in":"query",
-                "name":"filterMarcas",
-                "required":false,
-                "schema":{
-                  "type":"string"
-                },
-                "description":"nombre o nombres de marcas separados por (-)"
-              },
-              {
-                "in":"query",
-                "name":"precioMin",
-                "required":false,
-                "schema":{
-                  "type":"string"
-                },
-                "description":"precio minimo debe ir acompañado del precio Maaximo"
-              },
-              {
-                "in":"query",
-                "name":"precioMax",
-                "required":false,
-                "schema":{
-                  "type":"string"
-                },
-                "description":"precio maximo debe ir acompañado del precio minimo"
-              },
-              {
-                "in":"query",
-                "name":"filterAlmacen",
-                "required":false,
-                "schema":{
-                  "type":"string"
-                },
-                "description":"nombre o nombres de almacenes separados por (-)"
-            }
-
-            ],
-
-            "responses":{
-              "200":{
-                "content":{
-                  "application/json":{
-                    "schema":{
-                      "type":"object",
-                      "properties":{
-                        "data":{
-                          "type":"array",
-                          "items":{
-                            "$ref":"#/components/schemas/Producto"
-                            
-                          }
-                        }
-                      }
-                     
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        
-
-        
-
-      
-
+      }
     },
-    "components":{
-      "schemas":{
-        "Producto":{
-          "type":"object",
-          "properties":{
-            "id":{
-              "type":"string",
-              "example":"321d99a0-3a3f-44ad-b807-6f8413e03ac0"
-            },
-            "nombre":{
-              "type":"string",
-              "example":"Frenos de disco"
-            },
-            "descripcion":{
-              "type":"string",
-              "example":"Frenos de disco para auto"
-            },
-            "ficha_tecnica":{
-              "type":"string",
-              "example":"Frenos de disco para auto"
-            },
-            "precio":{
-              "type":"number",
-              "example":50000
-            },
-            "cantidad_disponible":{
-              "type":"number",
-              "example":10
-            },
-            "estatus":{
-              "type":"boolean",
-              "example":true
-            },
-            "tipo_entrega":{
-              "type":"string",
-              "example":"Entrega a domicilio"
-            },
-            "marca":{
-              "type":"string",
-              "example":"Brembo"
-            },
-            "fecha_creacion":{
-              "type":"string",
-              "format":"date-time",
-              "example":"2021-06-01T00:00:00.000Z"
-            },
-            "fecha_actualizacion":{
-              "type":"string",
-              "format":"date-time",
-              "example":"2021-06-01T00:00:00.000Z"
-            }
+    "/productos/{id}": {
+      "get": {
+        "summary": "Obtener un producto por id",
+        "description": "Obtener un producto por id",
+        "tags": ["Productos"],
+        "security": [
+          {
+            "BearerAuth": []
           }
-        },
-        "ProductoCreate":{
-          "type":"object",
-                  "properties":{
-                    "nombre":{
-                      "type":"string",
-                      "example":"Frenos de disco"
-                    },
-                    "descripcion":{
-                      "type":"string",
-                      "example":"Frenos de disco para auto"
-                    },
-                    "ficha_tecnica":{
-                      "type":"string",
-                      "example":"Frenos de disco para auto"
-                    },
-                    "precio":{
-                      "type":"number",
-                      "example":50000
-                    },
-                    "cantidad_disponible":{
-                      "type":"number",
-                      "example":10
-                    },
-                    "estatus":{
-                      "type":"boolean",
-                      "example":true
-                    },
-                    "tipo_entrega":{
-                      "type":"string",
-                      "example":"Entrega a domicilio"
-                    },
-                    "marca":{
-                      "type":"string",
-                      "example":"Brembo"
-                    }
-                  
-                  }
-        },
-        "UnauthorizedError":{
-          "type":"object",
-          "properties":{
-            "message":{
-              "type":"string",
-              "example":"No autorizado"
+        ],
+
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ProductId",
+            "required": true,
+            "schema": {
+              "type": "string"
             },
-            "status":{
-              "type":"number",
-              "example":401
+            "description": "Id del producto"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Producto"
+                    }
+                  }
+                }
+              }
             }
           }
         }
+      },
 
-
-        },
-        "securitySchemes":{
-          "BearerAuth":{
-            "type":"apiKey",
-            "scheme":"bearer",
-            "bearerFormat":"JWT",
-            "in":"header",
-            "name":"Authorization"
+      "put": {
+        "summary": "Actualizar un producto por id",
+        "tags": ["Productos"],
+        "security": [
+          {
+            "BearerAuth": []
           }
-    
+        ],
+        "description": "Actualizar un producto",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Producto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/productos/search/{searhTerm}": {
+      "get": {
+        "description": "Obtener un producto por Parametro de busqueda",
+        "tags": ["Productos"],
+        "summary": "Obtener un producto por parametro de busqueda",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "SearchTerm",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Nombre de un producto"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Producto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/productos/misProductos/": {
+      "get": {
+        "summary": "Obtener todos los productos de una empresa",
+        "description": "Obtener todos los productos de una Empresa",
+        "tags": ["Productos"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/productos/filter": {
+      "get": {
+        "summary": "Obtener los productos de una empresa filtrado por query de busqueda",
+        "description": "Obtener los productos de una empresa filtrado por query de busqueda",
+        "tags": ["Productos"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filterCategorias",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "nombre o nombres de categorias separados por (-)"
+          },
+          {
+            "in": "query",
+            "name": "filterMarcas",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "nombre o nombres de marcas separados por (-)"
+          },
+          {
+            "in": "query",
+            "name": "precioMin",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "precio minimo debe ir acompañado del precio Maaximo"
+          },
+          {
+            "in": "query",
+            "name": "precioMax",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "precio maximo debe ir acompañado del precio minimo"
+          },
+          {
+            "in": "query",
+            "name": "filterAlmacen",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "nombre o nombres de almacenes separados por (-)"
+          }
+        ],
+
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Producto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
-
-  
-
+  },
+  "components": {
+    "schemas": {
+      "Producto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "321d99a0-3a3f-44ad-b807-6f8413e03ac0"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Frenos de disco"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Frenos de disco para auto"
+          },
+          "ficha_tecnica": {
+            "type": "string",
+            "example": "Frenos de disco para auto"
+          },
+          "precio": {
+            "type": "number",
+            "example": 50000
+          },
+          "cantidad_disponible": {
+            "type": "number",
+            "example": 10
+          },
+          "estatus": {
+            "type": "boolean",
+            "example": true
+          },
+          "tipo_entrega": {
+            "type": "string",
+            "example": "Entrega a domicilio"
+          },
+          "marca": {
+            "type": "string",
+            "example": "Brembo"
+          },
+          "fecha_creacion": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-06-01T00:00:00.000Z"
+          },
+          "fecha_actualizacion": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-06-01T00:00:00.000Z"
+          }
+        }
+      },
+      "ProductoCreate": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "Frenos de disco"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "Frenos de disco para auto"
+          },
+          "ficha_tecnica": {
+            "type": "string",
+            "example": "Frenos de disco para auto"
+          },
+          "precio": {
+            "type": "number",
+            "example": 50000
+          },
+          "cantidad_disponible": {
+            "type": "number",
+            "example": 10
+          },
+          "estatus": {
+            "type": "boolean",
+            "example": true
+          },
+          "tipo_entrega": {
+            "type": "string",
+            "example": "Entrega a domicilio"
+          },
+          "marca": {
+            "type": "string",
+            "example": "Brembo"
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "No autorizado"
+          },
+          "status": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  }
+}

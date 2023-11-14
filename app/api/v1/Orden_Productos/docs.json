@@ -1,10 +1,9 @@
 {
   "paths": {
-
     "/orden_productos": {
-
       "get": {
         "tags": ["Ordenes de Productos"],
+        "summary": "Obtener todas las ordenes de productos",
         "description": "Obtener todas las Ordenes de Productos",
         "responses": {
           "200": {
@@ -30,6 +29,7 @@
 
       "post": {
         "tags": ["Ordenes de Productos"],
+        "summary": "Crear una orden de producto",
         "security": [
           {
             "BearerAuth": []
@@ -44,7 +44,6 @@
                 "properties": {
                   "ordenProductos": {
                     "$ref": "#/components/schemas/ordenProductos"
-
                   }
                 }
               }
@@ -62,7 +61,6 @@
                         "items": {
                           "$ref": "#/components/schemas/ordenProductoCreated"
                         }
-
                       }
                     }
                   }
@@ -89,8 +87,8 @@
     },
 
     "/orden_productos/{id}": {
-
       "get": {
+        "summary": "Obtener una orden de producto por id",
         "description": "Obtener una orden de producto por id",
         "tags": ["Ordenes de Productos"],
         "security": [
@@ -132,7 +130,8 @@
       },
 
       "put": {
-        "tags": ["Productos"],
+        "tags": ["Ordenes de Productos"],
+        "summary": "Actualizar una orden de producto por id",
         "security": [
           {
             "BearerAuth": []

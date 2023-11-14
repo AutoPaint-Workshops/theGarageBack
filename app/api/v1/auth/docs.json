@@ -78,6 +78,18 @@
         }
       }
     },
+    "/auth/confirmacion/{token}": {
+      "post": {
+        "summary": "Confirmación de correo electrónico",
+        "tags": ["Autenticación"]
+      }
+    },
+    "/auth/reenviarcorreo": {
+      "post": {
+        "summary": "Reenviar correo de confirmación de correo electrónico",
+        "tags": ["Autenticación"]
+      }
+    },
     "/auth/administrador/signup": {
       "post": {
         "summary": "Registro de usuarios administradores",
