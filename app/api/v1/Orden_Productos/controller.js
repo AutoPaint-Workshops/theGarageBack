@@ -119,8 +119,6 @@ export const all = async (req, res, next) => {
   try {
     if (userType === 'Administrador') {
       const { data, meta } = await getAllAdmin(
-        offset,
-        limit,
         orderBy,
         direction,
 
@@ -133,8 +131,6 @@ export const all = async (req, res, next) => {
       });
     } else {
       const { data, meta } = await getAll(
-        offset,
-        limit,
         orderBy,
         direction,
         date,
