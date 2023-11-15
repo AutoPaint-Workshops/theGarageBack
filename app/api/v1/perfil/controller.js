@@ -194,8 +194,6 @@ export const all = async (req, res, next) => {
   try {
     const [result, total] = await Promise.all([
       prisma.usuario.findMany({
-        skip: offset,
-        take: limit,
         orderBy: {
           [orderBy]: direction,
         },
