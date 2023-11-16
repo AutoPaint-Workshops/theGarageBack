@@ -92,8 +92,6 @@ export const getAllAdmin = async (orderBy, direction, date) => {
   return {
     data: orderWithProducts,
     meta: {
-      limit,
-      offset,
       orderBy,
       direction,
     },
@@ -130,8 +128,6 @@ export const getAll = async (orderBy, direction, date, idType, userType) => {
         where: {
           id_empresa: idType,
         },
-        skip: offset,
-        take: limit,
         orderBy: {
           [orderBy]: direction,
         },
@@ -225,8 +221,6 @@ export const getAll = async (orderBy, direction, date, idType, userType) => {
   return {
     data: orderWithProducts,
     meta: {
-      limit,
-      offset,
       orderBy,
       direction,
     },

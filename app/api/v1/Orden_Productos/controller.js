@@ -107,11 +107,10 @@ export const create = async (req, res, next) => {
 };
 
 export const all = async (req, res, next) => {
-  const { query = {}, decoded } = req;
+  const { decoded } = req;
   const { id, idType, userType } = decoded;
   const { orderBy, direction, date } = parseOrderParams({
     fields,
-    ...query,
   });
 
   try {
