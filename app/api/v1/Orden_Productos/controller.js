@@ -109,8 +109,6 @@ export const create = async (req, res, next) => {
 export const all = async (req, res, next) => {
   const { query = {}, decoded } = req;
   const { id, idType, userType } = decoded;
-
-  const { offset, limit } = parsePaginationParams(query);
   const { orderBy, direction, date } = parseOrderParams({
     fields,
     ...query,
@@ -118,12 +116,7 @@ export const all = async (req, res, next) => {
 
   try {
     if (userType === 'Administrador') {
-      const { data, meta } = await getAllAdmin(
-        orderBy,
-        direction,
-
-        date,
-      );
+      const { data, meta } = await getAllAdmin(orderBy, direction, date);
 
       res.json({
         data,
@@ -135,7 +128,6 @@ export const all = async (req, res, next) => {
         direction,
         date,
         idType,
-
         userType,
       );
 
