@@ -1,11 +1,8 @@
 import { prisma } from '../../../database.js';
 
-export const getAllAdmin = async (offset, limit, orderBy, direction, date) => {
+export const getAllAdmin = async (orderBy, direction, date) => {
   const [result] = await Promise.all([
     prisma.orden_Productos.findMany({
-      skip: offset,
-      take: limit,
-
       orderBy: {
         [orderBy]: direction,
       },
@@ -95,23 +92,13 @@ export const getAllAdmin = async (offset, limit, orderBy, direction, date) => {
   return {
     data: orderWithProducts,
     meta: {
-      limit,
-      offset,
       orderBy,
       direction,
     },
   };
 };
 
-export const getAll = async (
-  offset,
-  limit,
-  orderBy,
-  direction,
-  date,
-  idType,
-  userType,
-) => {
+export const getAll = async (orderBy, direction, date, idType, userType) => {
   let result;
   if (userType === 'Cliente') {
     const [response] = await Promise.all([
@@ -119,8 +106,6 @@ export const getAll = async (
         where: {
           id_cliente: idType,
         },
-        skip: offset,
-        take: limit,
         orderBy: {
           [orderBy]: direction,
         },
@@ -143,8 +128,6 @@ export const getAll = async (
         where: {
           id_empresa: idType,
         },
-        skip: offset,
-        take: limit,
         orderBy: {
           [orderBy]: direction,
         },
@@ -238,8 +221,6 @@ export const getAll = async (
   return {
     data: orderWithProducts,
     meta: {
-      limit,
-      offset,
       orderBy,
       direction,
     },
